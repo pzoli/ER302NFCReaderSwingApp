@@ -160,11 +160,11 @@ public class ER302Driver {
     }
 
     public static byte crc(byte[] input) {
-        byte result = 0;
+        int result = 0;
         for (int i = 0; i < input.length; i++) {
             result ^= input[i];
         }
-        return result;
+        return (byte)result;
     }
 
     public static int byteArrayToInteger(byte[] src, boolean bigEndian) {
