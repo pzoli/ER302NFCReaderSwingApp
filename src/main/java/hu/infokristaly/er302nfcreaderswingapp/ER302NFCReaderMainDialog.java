@@ -201,7 +201,6 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     private byte[] readBlock(byte sector, byte block) {
         byte[] data = {(byte) (sector * 4 + block)};
         byte[] result = buildCommand(ER302Driver.CMD_MIFARE_READ_BLOCK, data);
-        System.out.println("readBlock command: " + ER302Driver.byteArrayToHexString(result));
         return result;
     }
 
@@ -515,7 +514,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                 addCommand(new ER302Driver.CommandStruct(7 + (2 * state), "Auth", auth2((byte) 5)));
                 state++;
             }
-            default -> System.out.println("Unexpected value: " + result);
+            default -> log("Unexpected value: " + result);
         }
     }
 
