@@ -143,9 +143,6 @@
       </Events>
     </Component>
     <Component class="javax.swing.JTextField" name="txtHexString">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="AABB0500FFFF040004"/>
-      </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel1">
       <Properties>

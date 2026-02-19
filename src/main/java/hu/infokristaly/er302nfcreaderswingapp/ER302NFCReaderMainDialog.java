@@ -148,9 +148,9 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         return result;
     }
 
-    private byte[] readHalt() {
+    private byte[] readHltA() {
         byte[] data = {};
-        byte[] result = buildCommand(ER302Driver.CMD_MIFARE_HALT, data);
+        byte[] result = buildCommand(ER302Driver.CMD_MIFARE_HLTA, data);
         return result;
     }
 
@@ -257,8 +257,6 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
 
         btnTest.setText("Send");
         btnTest.addActionListener(this::btnTestActionPerformed);
-
-        txtHexString.setText("AABB0500FFFF040004");
 
         jLabel1.setText("Hexa String:");
 
@@ -487,7 +485,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                         addCommand(new ER302Driver.CommandStruct(20, "Write block (7/1)", writeBlock((byte) 5, (byte) 0, byteBlock)));
                     }
                     case 8 -> addCommand(new ER302Driver.CommandStruct(22, "Read block (7/1)", readBlock((byte) 5, (byte) 0)));
-                    case 9 -> addCommand(new ER302Driver.CommandStruct(24, "Halt", readHalt()));
+                    case 9 -> addCommand(new ER302Driver.CommandStruct(24, "Halt", readHltA()));
                     default -> System.err.println("Unexpected state: " + state);
                         
                 }
@@ -522,7 +520,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                 addCommand(new ER302Driver.CommandStruct(7 + (2 * state), "Auth", auth2((byte) 5)));
                 state++;
             }
-            case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_HALT)) -> {
+            case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_HLTA)) -> {
                 log("Halt: "+res.error);
             }
             default -> log("Unexpected command: " + ER302Driver.byteArrayToHexString(result.cmd));
