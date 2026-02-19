@@ -380,7 +380,8 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         try {
             logArea.setText("");
             state = 0;
-            byte[] msg = ER302Driver.hexStringToByteArray(txtHexString.getText()); //AABB0500FFFF040105
+            txtHexString.setText(txtHexString.getText().replaceAll(" ", ""));
+            byte[] msg = ER302Driver.hexStringToByteArray(txtHexString.getText());
             if (serialPort.writeBytes(msg)) {
                 log("Sent string: "+ER302Driver.byteArrayToHexString(msg));
             }
