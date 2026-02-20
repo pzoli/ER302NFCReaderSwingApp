@@ -233,7 +233,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         jScrollPane1 = new javax.swing.JScrollPane();
         logArea = new javax.swing.JTextArea();
         btnBeep = new javax.swing.JButton();
-        btnReadCardId = new javax.swing.JButton();
+        btnSendMessageSequence = new javax.swing.JButton();
         btnTest = new javax.swing.JButton();
         txtHexString = new javax.swing.JTextField();
         jLabel1 = new javax.swing.JLabel();
@@ -252,8 +252,8 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         btnBeep.setText("Beep");
         btnBeep.addActionListener(this::btnBeepActionPerformed);
 
-        btnReadCardId.setText("Send message sequence");
-        btnReadCardId.addActionListener(this::btnReadCardIdActionPerformed);
+        btnSendMessageSequence.setText("Send message sequence");
+        btnSendMessageSequence.addActionListener(this::btnSendMessageSequenceActionPerformed);
 
         btnTest.setText("Send");
         btnTest.addActionListener(this::btnTestActionPerformed);
@@ -281,7 +281,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(txtHexString)
-                            .addComponent(btnReadCardId, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addComponent(btnSendMessageSequence, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnTest)))
                 .addGap(39, 39, 39))
@@ -299,7 +299,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnBeep)
-                    .addComponent(btnReadCardId))
+                    .addComponent(btnSendMessageSequence))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(txtHexString, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -360,12 +360,12 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
 
     }//GEN-LAST:event_btnBeepActionPerformed
 
-    private void btnReadCardIdActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnReadCardIdActionPerformed
+    private void btnSendMessageSequenceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSendMessageSequenceActionPerformed
         testCommands = false;
         try {
             logArea.setText("");
             state = 0;
-            byte[] statusMsg = buildCommand(ER302Driver.CMD_WORKING_STATUS, new byte[]{0x01, 0x23});
+            byte[] statusMsg = buildCommand(ER302Driver.CMD_WORKING_STATUS, new byte[]{0x01, 0x23}); //REPLACE WITH BEEP
             lastCommand = new ER302Driver.CommandStruct(0, "Working status", statusMsg);
             commandMap.put(0, lastCommand);
             addCommand(new ER302Driver.CommandStruct(1, "Firmware version", readFirmware()));
@@ -377,7 +377,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
             Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
             log(ex.getMessage());
         }
-    }//GEN-LAST:event_btnReadCardIdActionPerformed
+    }//GEN-LAST:event_btnSendMessageSequenceActionPerformed
 
     private void btnTestActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTestActionPerformed
         testCommands = true;
@@ -583,7 +583,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnBeep;
-    private javax.swing.JButton btnReadCardId;
+    private javax.swing.JButton btnSendMessageSequence;
     private javax.swing.JButton btnTest;
     private javax.swing.JButton connectButton;
     private javax.swing.JLabel jLabel1;

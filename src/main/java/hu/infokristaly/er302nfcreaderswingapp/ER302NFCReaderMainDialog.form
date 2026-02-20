@@ -42,7 +42,7 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="txtHexString" max="32767" attributes="0"/>
-                          <Component id="btnReadCardId" max="32767" attributes="0"/>
+                          <Component id="btnSendMessageSequence" max="32767" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="btnTest" min="-2" max="-2" attributes="0"/>
@@ -66,7 +66,7 @@
               <EmptySpace type="unrelated" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="btnBeep" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="btnReadCardId" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="btnSendMessageSequence" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace type="unrelated" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
@@ -126,12 +126,12 @@
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnBeepActionPerformed"/>
       </Events>
     </Component>
-    <Component class="javax.swing.JButton" name="btnReadCardId">
+    <Component class="javax.swing.JButton" name="btnSendMessageSequence">
       <Properties>
         <Property name="text" type="java.lang.String" value="Send message sequence"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnReadCardIdActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnSendMessageSequenceActionPerformed"/>
       </Events>
     </Component>
     <Component class="javax.swing.JButton" name="btnTest">
