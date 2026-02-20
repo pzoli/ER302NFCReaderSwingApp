@@ -268,7 +268,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
 
         jLabel1.setText("Hexa String:");
 
-        lblDecode.setText("Decode String:");
+        lblDecode.setText("Message:");
 
         btnDecode.setText("Decode");
         btnDecode.addActionListener(this::btnDecodeActionPerformed);
