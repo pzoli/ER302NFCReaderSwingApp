@@ -365,7 +365,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         try {
             logArea.setText("");
             state = 0;
-            byte[] beepMsg = beep((byte) 100);
+            byte[] beepMsg = beep((byte) 50);
             lastCommand = new ER302Driver.CommandStruct(0, "Beep", beepMsg);
             commandMap.put(0, lastCommand);
             addCommand(new ER302Driver.CommandStruct(1, "Firmware version", readFirmware()));
@@ -468,8 +468,12 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                 typeBytes = res.data;
                 addCommand(new ER302Driver.CommandStruct(3, "Mifare anticolision", mifareAnticolision()));
             } 
-            case ReceivedStruct res when ((Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_SELECT) || Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_UL_SELECT)) && res.error == 0x00) -> {
-                addCommand(new ER302Driver.CommandStruct(5, "Auth2", auth2((byte)5)));
+            case ReceivedStruct res when ((Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_SELECT) || Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_UL_SELECT))) -> {
+                if (res.error == 0x00) {
+                    addCommand(new ER302Driver.CommandStruct(5, "Auth2", auth2((byte)5)));
+                } else {
+                    log("Select error: " + res.error);
+                }
             } 
             case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_AUTH2)) -> {
                 switch(state) {
