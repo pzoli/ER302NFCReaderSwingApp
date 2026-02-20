@@ -97,7 +97,7 @@ public class ER302Driver {
     public static byte[] CMD_MIFARE_REQUEST = {0x01, 0x02};
     public static byte[] CMD_MIFARE_ANTICOLISION = {0x02, 0x02}; // 0x04 -> <NUL> (00)     [4cd90080]-cardnumber
     public static byte[] CMD_MIFARE_SELECT = {0x03, 0x02}; // [4cd90080] -> 0008
-    public static byte[] CMD_MIFARE_HALT = {0x04, 0x02};
+    public static byte[] CMD_MIFARE_HLTA = {0x04, 0x02};
     public static byte[] CMD_MIFARE_AUTH2 = {0x07, 0x02}; // 60[sector*4][key]
     public static byte[] CMD_MIFARE_READ_BLOCK = {0x08, 0x02}; //[block_number]
     public static byte[] CMD_MIFARE_WRITE_BLOCK = {0x09, 0x02};
