@@ -365,14 +365,14 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         try {
             logArea.setText("");
             state = 0;
-            byte[] statusMsg = buildCommand(ER302Driver.CMD_WORKING_STATUS, new byte[]{0x01, 0x23}); //REPLACE WITH BEEP
-            lastCommand = new ER302Driver.CommandStruct(0, "Working status", statusMsg);
+            byte[] beepMsg = beep((byte) 100);
+            lastCommand = new ER302Driver.CommandStruct(0, "Beep", beepMsg);
             commandMap.put(0, lastCommand);
             addCommand(new ER302Driver.CommandStruct(1, "Firmware version", readFirmware()));
             addCommand(new ER302Driver.CommandStruct(2, "MiFare request", mifareRequest()));
 
-            log("Status message: "+ER302Driver.byteArrayToHexString(statusMsg));
-            serialPort.writeBytes(statusMsg);
+            log("Beep message: "+ER302Driver.byteArrayToHexString(beepMsg));
+            serialPort.writeBytes(beepMsg);
         } catch (SerialPortException ex) {
             Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
             log(ex.getMessage());
@@ -523,7 +523,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
             case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_HLTA)) -> {
                 log("Halt: "+res.error);
             }
-            default -> log("Unexpected command: " + ER302Driver.byteArrayToHexString(result.cmd));
+            default -> log("Skipped command: " + ER302Driver.byteArrayToHexString(result.cmd));
         }
     }
 
