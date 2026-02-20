@@ -5,6 +5,9 @@
  */
 package hu.infokristaly.er302nfcreaderswingapp;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonGetter;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HexFormat;
@@ -55,6 +58,7 @@ public class ER302Driver {
         }
     }
 
+    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
     public static class ReceivedStruct {
         int length = 0;
         byte[] cmd;
@@ -63,6 +67,26 @@ public class ER302Driver {
         boolean valid = false;
         byte error;
         List<String> log = new LinkedList<String>();
+
+        private String getArrayAsHex(byte[] value) {
+            if (value == null) return null;
+            StringBuilder sb = new StringBuilder();
+            for (byte b : value) {
+                sb.append(String.format("%02X", b));
+            }
+            return sb.toString();
+        }
+
+        @JsonGetter("cmd") // A Jackson ezt fogja meghívni a JSON generálásakor
+        public String getCmdAsHex() {
+            return getArrayAsHex(cmd);
+        }
+        
+        @JsonGetter("data") // A Jackson ezt fogja meghívni a JSON generálásakor
+        public String getDataAsHex() {
+            return getArrayAsHex(data);
+        }
+
     }
 
     // Mifare types
