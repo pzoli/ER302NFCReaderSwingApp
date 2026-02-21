@@ -34,7 +34,6 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     private byte state = 0;
 
     private Queue<ER302Driver.CommandStruct> commands = new LinkedList<ER302Driver.CommandStruct>();
-    private Map<Integer, ER302Driver.CommandStruct> commandMap = new HashMap<Integer, ER302Driver.CommandStruct>();
 
     private enum LED {
         RED, BLUE, OFF
@@ -54,7 +53,6 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     private boolean testCommands = false;
 
     private void addCommand(ER302Driver.CommandStruct cmd) {
-        commandMap.put(cmd.id, cmd);
         commands.add(cmd);
     }
 
@@ -245,6 +243,11 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         txtDecode = new javax.swing.JTextField();
         btnDecode = new javax.swing.JButton();
         btnClear = new javax.swing.JButton();
+        txtCmd = new javax.swing.JTextField();
+        txtParams = new javax.swing.JTextField();
+        btnEncode = new javax.swing.JButton();
+        jLabel3 = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -276,6 +279,13 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         btnClear.setText("Clear");
         btnClear.addActionListener(this::btnClearActionPerformed);
 
+        btnEncode.setText("Encode");
+        btnEncode.addActionListener(this::btnEncodeActionPerformed);
+
+        jLabel3.setText("Command:");
+
+        jLabel4.setText("Params:");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -283,23 +293,6 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
             .addGroup(layout.createSequentialGroup()
                 .addGap(29, 29, 29)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(btnBeep)
-                                .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.TRAILING))
-                            .addComponent(lblDecode))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(txtHexString)
-                            .addComponent(btnSendMessageSequence, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(txtDecode))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(btnTest, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(btnDecode, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(btnClear, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addGap(36, 36, 36))
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGap(4, 4, 4)
@@ -307,7 +300,33 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(serialPortList, javax.swing.GroupLayout.PREFERRED_SIZE, 146, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(connectButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addComponent(connectButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(btnBeep)
+                                .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.TRAILING))
+                            .addComponent(lblDecode)
+                            .addComponent(jLabel3))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(txtCmd, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(txtParams, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(txtHexString)
+                            .addComponent(btnSendMessageSequence, javax.swing.GroupLayout.DEFAULT_SIZE, 177, Short.MAX_VALUE)
+                            .addComponent(txtDecode))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                .addComponent(btnTest, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(btnDecode, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(btnClear, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addComponent(btnEncode))
+                        .addGap(33, 33, 33)))
                 .addGap(30, 30, 30))
         );
         layout.setVerticalGroup(
@@ -335,7 +354,14 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                     .addComponent(lblDecode)
                     .addComponent(txtDecode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnDecode))
-                .addContainerGap(17, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtCmd, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtParams, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnEncode)
+                    .addComponent(jLabel3)
+                    .addComponent(jLabel4))
+                .addContainerGap(8, Short.MAX_VALUE))
         );
 
         pack();
@@ -397,7 +423,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
             state = 0;
             byte[] beepMsg = beep((byte) 50);
             lastCommand = new ER302Driver.CommandStruct(0, "Beep", beepMsg);
-            commandMap.put(0, lastCommand);
+
             addCommand(new ER302Driver.CommandStruct(1, "Firmware version", readFirmware()));
             addCommand(new ER302Driver.CommandStruct(2, "MiFare request", mifareRequest()));
 
@@ -441,6 +467,10 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     private void btnClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClearActionPerformed
         logArea.setText("");
     }//GEN-LAST:event_btnClearActionPerformed
+
+    private void btnEncodeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEncodeActionPerformed
+        txtHexString.setText(ER302Driver.byteArrayToHexString(buildCommand(ER302Driver.hexStringToByteArray(txtCmd.getText()), ER302Driver.hexStringToByteArray(txtParams.getText()))));
+    }//GEN-LAST:event_btnEncodeActionPerformed
 
     /**
      * @param args the command line arguments
@@ -636,16 +666,21 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     private javax.swing.JButton btnBeep;
     private javax.swing.JButton btnClear;
     private javax.swing.JButton btnDecode;
+    private javax.swing.JButton btnEncode;
     private javax.swing.JButton btnSendMessageSequence;
     private javax.swing.JButton btnTest;
     private javax.swing.JButton connectButton;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lblDecode;
     private javax.swing.JTextArea logArea;
     private javax.swing.JComboBox<String> serialPortList;
+    private javax.swing.JTextField txtCmd;
     private javax.swing.JTextField txtDecode;
     private javax.swing.JTextField txtHexString;
+    private javax.swing.JTextField txtParams;
     // End of variables declaration//GEN-END:variables
 }
