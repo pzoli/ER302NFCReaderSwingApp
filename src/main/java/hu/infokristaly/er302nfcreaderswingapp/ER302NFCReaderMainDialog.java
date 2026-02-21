@@ -418,36 +418,40 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
 
     private void btnSendMessageSequenceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSendMessageSequenceActionPerformed
         testCommands = false;
-        try {
-            logArea.setText("");
-            state = 0;
-            byte[] beepMsg = beep((byte) 50);
-            lastCommand = new ER302Driver.CommandStruct(0, "Beep", beepMsg);
+        if (serialPort != null) {
+            try {
+                logArea.setText("");
+                state = 0;
+                byte[] beepMsg = beep((byte) 50);
+                lastCommand = new ER302Driver.CommandStruct(0, "Beep", beepMsg);
 
-            addCommand(new ER302Driver.CommandStruct(1, "Firmware version", readFirmware()));
-            addCommand(new ER302Driver.CommandStruct(2, "MiFare request", mifareRequest()));
+                addCommand(new ER302Driver.CommandStruct(1, "Firmware version", readFirmware()));
+                addCommand(new ER302Driver.CommandStruct(2, "MiFare request", mifareRequest()));
 
-            log("Beep message: "+ER302Driver.byteArrayToHexString(beepMsg));
-            serialPort.writeBytes(beepMsg);
-        } catch (SerialPortException ex) {
-            Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
-            log(ex.getMessage());
+                log("Beep message: "+ER302Driver.byteArrayToHexString(beepMsg));
+                serialPort.writeBytes(beepMsg);
+            } catch (SerialPortException ex) {
+                Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
+                log(ex.getMessage());
+            }
         }
     }//GEN-LAST:event_btnSendMessageSequenceActionPerformed
 
     private void btnTestActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTestActionPerformed
         testCommands = true;
-        try {
-            logArea.setText("");
-            state = 0;
-            txtHexString.setText(txtHexString.getText().replaceAll(" ", ""));
-            byte[] msg = ER302Driver.hexStringToByteArray(txtHexString.getText());
-            if (serialPort.writeBytes(msg)) {
-                log("Sent string: "+ER302Driver.byteArrayToHexString(msg));
+        if (serialPort != null) {
+            try {
+                logArea.setText("");
+                state = 0;
+                txtHexString.setText(txtHexString.getText().replaceAll(" ", ""));
+                byte[] msg = ER302Driver.hexStringToByteArray(txtHexString.getText());
+                if (serialPort.writeBytes(msg)) {
+                    log("Sent string: "+ER302Driver.byteArrayToHexString(msg));
+                }
+            } catch (SerialPortException ex) {
+                Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
+                log(ex.getMessage());
             }
-        } catch (SerialPortException ex) {
-            Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
-            log(ex.getMessage());
         }
     }//GEN-LAST:event_btnTestActionPerformed
 
