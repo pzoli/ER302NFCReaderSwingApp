@@ -9,3 +9,5 @@ Use maven: mvn clean package
 target > java -jar ER302NFCReaderSwingApp-1.0-SNAPSHOT.jar
 
 (sponsored by https://nfcshop.hu/)
+
+![Screenshot.jpg](docs/Screenshot.png)
