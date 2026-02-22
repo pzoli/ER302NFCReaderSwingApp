@@ -1,6 +1,6 @@
 # ER302NFCReaderSwingApp
 Sample JavaSE 25 Swing application for communicate with ER302 (YHY523U) over serial port (JSSC library).
-Tested on Ubuntu Linux 17.10/24.04 and Windows 10/11.
+Tested on Ubuntu Linux 17.10/24.04 and Windows 10/11 with MiFare Classic 1K (ISO14443A) card.
 
 ## Build
 Use maven: mvn clean package

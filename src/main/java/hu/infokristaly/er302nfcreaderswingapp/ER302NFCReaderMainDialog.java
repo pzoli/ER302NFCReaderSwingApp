@@ -558,18 +558,18 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
             } 
             case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_AUTH2)) -> {
                 switch(state) {
-                    case 0 -> addCommand(new ER302Driver.CommandStruct(6, "Init balance (7/1)", initBalance((byte) 5, (byte) 1, 10)));
-                    case 1 -> addCommand(new ER302Driver.CommandStruct(8, "Read balance (7/1)", readBalance((byte) 5, (byte) 1)));
-                    case 2 -> addCommand(new ER302Driver.CommandStruct(10, "Inc balance (7/1)", incBalance((byte) 5, (byte) 1, 2)));
-                    case 3 -> addCommand(new ER302Driver.CommandStruct(12, "Read balance (7/1)", readBalance((byte) 5, (byte) 1)));
-                    case 4 -> addCommand(new ER302Driver.CommandStruct(14, "Dec balance (7/1)", decBalance((byte) 5, (byte) 1, 2)));
-                    case 5 -> addCommand(new ER302Driver.CommandStruct(16, "Read balance (7/1)", readBalance((byte) 5, (byte) 1)));
-                    case 6 -> addCommand(new ER302Driver.CommandStruct(18, "Read block (7/1)", readBlock((byte) 5, (byte) 0)));
+                    case 0 -> addCommand(new ER302Driver.CommandStruct(6, "Init balance (5/1)", initBalance((byte) 5, (byte) 1, 10)));
+                    case 1 -> addCommand(new ER302Driver.CommandStruct(8, "Read balance (5/1)", readBalance((byte) 5, (byte) 1)));
+                    case 2 -> addCommand(new ER302Driver.CommandStruct(10, "Inc balance (5/1)", incBalance((byte) 5, (byte) 1, 2)));
+                    case 3 -> addCommand(new ER302Driver.CommandStruct(12, "Read balance (5/1)", readBalance((byte) 5, (byte) 1)));
+                    case 4 -> addCommand(new ER302Driver.CommandStruct(14, "Dec balance (5/1)", decBalance((byte) 5, (byte) 1, 2)));
+                    case 5 -> addCommand(new ER302Driver.CommandStruct(16, "Read balance (5/1)", readBalance((byte) 5, (byte) 1)));
+                    case 6 -> addCommand(new ER302Driver.CommandStruct(18, "Read block (5/1)", readBlock((byte) 5, (byte) 0)));
                     case 7 ->  {
                         byte[] byteBlock = {0x00, 0x01, 0x02, 0x03};
-                        addCommand(new ER302Driver.CommandStruct(20, "Write block (7/1)", writeBlock((byte) 5, (byte) 0, byteBlock)));
+                        addCommand(new ER302Driver.CommandStruct(20, "Write block (7/0)", writeBlock((byte) 5, (byte) 0, byteBlock)));
                     }
-                    case 8 -> addCommand(new ER302Driver.CommandStruct(22, "Read block (7/1)", readBlock((byte) 5, (byte) 0)));
+                    case 8 -> addCommand(new ER302Driver.CommandStruct(22, "Read block (7/0)", readBlock((byte) 5, (byte) 0)));
                     case 9 -> addCommand(new ER302Driver.CommandStruct(24, "Halt", readHltA()));
                     default -> System.err.println("Unexpected state: " + state);
                         
