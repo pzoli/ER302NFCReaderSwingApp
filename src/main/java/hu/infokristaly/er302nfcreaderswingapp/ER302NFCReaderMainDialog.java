@@ -622,6 +622,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
             } 
             case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_READ_BLOCK)) -> {
                 if (Arrays.equals(typeBytes, ER302Driver.TYPE_MIFARE_UL)) {
+                    log("UL page (8) content: " + ER302Driver.byteArrayToHexString(Arrays.copyOfRange(res.data,0,4)));
                     addCommand(new ER302Driver.CommandStruct(6, "Halt", cmdHltA()));
                 } else {
                     addCommand(new ER302Driver.CommandStruct(7 + (2 * state), "Auth", auth2((byte) 5)));

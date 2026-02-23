@@ -6,7 +6,6 @@
 package hu.infokristaly.er302nfcreaderswingapp;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
