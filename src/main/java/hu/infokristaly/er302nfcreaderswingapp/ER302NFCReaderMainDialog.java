@@ -12,6 +12,7 @@ import hu.infokristaly.er302nfcreaderswingapp.ER302Driver.ReceivedStruct;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -263,6 +264,9 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         btnEncode = new javax.swing.JButton();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
+        txtURL = new javax.swing.JTextField();
+        btnUploadURL = new javax.swing.JButton();
+        jLabel5 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -301,6 +305,11 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
 
         jLabel4.setText("Params:");
 
+        btnUploadURL.setText("Upload");
+        btnUploadURL.addActionListener(this::btnUploadURLActionPerformed);
+
+        jLabel5.setText("URL:");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -322,7 +331,8 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                                 .addComponent(btnBeep)
                                 .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.TRAILING))
                             .addComponent(lblDecode)
-                            .addComponent(jLabel3))
+                            .addComponent(jLabel3)
+                            .addComponent(jLabel5))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
@@ -332,16 +342,18 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(txtParams, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addComponent(txtHexString)
-                            .addComponent(btnSendMessageSequence, javax.swing.GroupLayout.DEFAULT_SIZE, 224, Short.MAX_VALUE)
-                            .addComponent(txtDecode))
+                            .addComponent(btnSendMessageSequence, javax.swing.GroupLayout.DEFAULT_SIZE, 227, Short.MAX_VALUE)
+                            .addComponent(txtDecode)
+                            .addComponent(txtURL))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                 .addComponent(btnTest, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(btnDecode, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(btnClear, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                            .addComponent(btnEncode))
-                        .addGap(33, 33, 33)))
+                            .addComponent(btnEncode)
+                            .addComponent(btnUploadURL))
+                        .addGap(30, 30, 30)))
                 .addGap(30, 30, 30))
         );
         layout.setVerticalGroup(
@@ -376,7 +388,12 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                     .addComponent(btnEncode)
                     .addComponent(jLabel3)
                     .addComponent(jLabel4))
-                .addContainerGap(8, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtURL, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnUploadURL)
+                    .addComponent(jLabel5))
+                .addContainerGap(9, Short.MAX_VALUE))
         );
 
         pack();
@@ -490,6 +507,47 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     private void btnEncodeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEncodeActionPerformed
         txtHexString.setText(ER302Driver.byteArrayToHexString(buildCommand(ER302Driver.hexStringToByteArray(txtCmd.getText()), ER302Driver.hexStringToByteArray(txtParams.getText()))));
     }//GEN-LAST:event_btnEncodeActionPerformed
+
+    public void writeUrlToTag(String url) throws SerialPortException, InterruptedException {
+        // 0. prepare the Capability Container
+        /*
+        byte[] cc = new byte[]{ 0x01, 0x03, (byte)0xA0, 0x10 };
+        byte[] cmd = mifareULWrite((byte)4, cc); // 4-es lap (fontos!)
+        serialPort.writeBytes(cmd);
+        Thread.sleep(Duration.ofSeconds(1));
+        //*/
+        testCommands = true;
+        serialPort.writeBytes(mifareRequest());
+        Thread.sleep(Duration.ofSeconds(1));
+        serialPort.writeBytes(mifareAnticolision());
+        Thread.sleep(Duration.ofSeconds(1));
+        serialPort.writeBytes(mifareULSelect());
+        Thread.sleep(Duration.ofSeconds(1));
+        byte[] dataToWrite = ER302Driver.createNdefUrlMessage(url);
+
+        // 2. write blocks (from page 4)
+        for (int i = 0; i < dataToWrite.length; i += 4) {
+            byte[] chunk = new byte[4];
+            int remaining = dataToWrite.length - i;
+            System.arraycopy(dataToWrite, i, chunk, 0, Math.min(4, remaining));
+
+            //int page = 5 + (i / 4);
+            int page = 4 + (i / 4);
+            byte[] pcmd = mifareULWrite((byte)page, chunk);
+            serialPort.writeBytes(pcmd);
+            Thread.sleep(Duration.ofSeconds(1));
+            log("Writing page " + page + ": " + ER302Driver.byteArrayToHexString(chunk));
+        }
+        serialPort.writeBytes(cmdHltA());
+    }
+    
+    private void btnUploadURLActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUploadURLActionPerformed
+        try {
+            writeUrlToTag(txtURL.getText().trim());
+        } catch (SerialPortException | InterruptedException ex) {
+            System.getLogger(ER302NFCReaderMainDialog.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+        }
+    }//GEN-LAST:event_btnUploadURLActionPerformed
 
     /**
      * @param args the command line arguments
@@ -701,11 +759,13 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     private javax.swing.JButton btnEncode;
     private javax.swing.JButton btnSendMessageSequence;
     private javax.swing.JButton btnTest;
+    private javax.swing.JButton btnUploadURL;
     private javax.swing.JButton connectButton;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lblDecode;
     private javax.swing.JTextArea logArea;
@@ -714,5 +774,6 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     private javax.swing.JTextField txtDecode;
     private javax.swing.JTextField txtHexString;
     private javax.swing.JTextField txtParams;
+    private javax.swing.JTextField txtURL;
     // End of variables declaration//GEN-END:variables
 }

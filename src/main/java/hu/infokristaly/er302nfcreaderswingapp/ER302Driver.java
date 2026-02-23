@@ -8,6 +8,7 @@ package hu.infokristaly.er302nfcreaderswingapp;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.HexFormat;
 import java.util.LinkedList;
@@ -236,4 +237,35 @@ public class ER302Driver {
         return result;
     }
 
+    public static byte[] createNdefUrlMessage(String url) {
+        // 1. URL prefix rövidítés (helytakarékosság miatt)
+        // 0x01: http://www. | 0x02: https://www. | 0x03: http:// | 0x04: https://
+        byte prefix = 0x04; // Alapértelmezett: https://
+        String cleanUrl = url;
+
+        if (url.startsWith("https://")) cleanUrl = url.substring(8);
+        else if (url.startsWith("http://")) { prefix = 0x03; cleanUrl = url.substring(7); }
+
+        byte[] urlBytes = cleanUrl.getBytes(Charset.forName("UTF-8"));
+        int payloadLen = urlBytes.length + 1; // +1 a prefix miatt
+
+        // 2. NDEF keretezés
+        byte[] ndef = new byte[payloadLen + 4];
+        ndef[0] = (byte) 0xD1; // Record Header (MB=1, ME=1, SR=1, TNF=0x01)
+        ndef[1] = 0x01;        // Type Length (1 bájt, azaz az "U")
+        ndef[2] = (byte) payloadLen; // Payload Length
+        ndef[3] = 0x55;        // Record Type: "U" (URI)
+        ndef[4] = prefix;      // URI Prefix (https://)
+
+        System.arraycopy(urlBytes, 0, ndef, 5, urlBytes.length);
+
+        // 3. TLV (Tag-Length-Value) boríték (Az NFC kártyának kell)
+        byte[] tlv = new byte[ndef.length + 3];
+        tlv[0] = 0x03;                // T: NDEF Message tag
+        tlv[1] = (byte) ndef.length;  // L: Message length
+        System.arraycopy(ndef, 0, tlv, 2, ndef.length);
+        tlv[tlv.length - 1] = (byte) 0xFE; // Terminator TLV
+
+        return tlv;
+    }
 }
