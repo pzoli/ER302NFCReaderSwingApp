@@ -267,6 +267,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         txtURL = new javax.swing.JTextField();
         btnUploadURL = new javax.swing.JButton();
         jLabel5 = new javax.swing.JLabel();
+        jLabel6 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -309,6 +310,8 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         btnUploadURL.addActionListener(this::btnUploadURLActionPerformed);
 
         jLabel5.setText("URL to Ultralight:");
+
+        jLabel6.setText("v0.2");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -353,6 +356,10 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                             .addComponent(btnEncode, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(btnUploadURL, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addGap(30, 30, 30))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -391,7 +398,9 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                     .addComponent(txtURL, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnUploadURL)
                     .addComponent(jLabel5))
-                .addContainerGap(9, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 9, Short.MAX_VALUE)
+                .addComponent(jLabel6)
+                .addContainerGap())
         );
 
         pack();
@@ -764,6 +773,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lblDecode;
     private javax.swing.JTextArea logArea;
