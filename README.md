@@ -38,6 +38,12 @@ Whit this feature you can decode a message to a visually readable JSON format.
 With this feature you can encode a command and it's params info a sendable hexadecimal message.
 (Output of this function is the Hexa message field component. Than you can send as a message to the ER302)
 
-(sponsored by https://nfcshop.hu/)
+## Install Windows Universal Driver (Windows 11)
+Download the CP210x_Universal_Windows_Driver.zip from [silabs.com](https://www.silabs.com/software-and-tools/usb-to-uart-bridge-vcp-drivers?tab=downloads)
+- Unzip, enter CP210x directory.
+- Run UpdateParam.bat
+- right click on silabser.inf and press Install on the popup menu.
 
 ![Screenshot.jpg](docs/Screenshot.png)
+
+(sponsored by https://nfcshop.hu/)

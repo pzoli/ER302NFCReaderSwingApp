@@ -308,7 +308,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         btnUploadURL.setText("Upload");
         btnUploadURL.addActionListener(this::btnUploadURLActionPerformed);
 
-        jLabel5.setText("URL:");
+        jLabel5.setText("URL to Ultralight:");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -342,7 +342,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(txtParams, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addComponent(txtHexString)
-                            .addComponent(btnSendMessageSequence, javax.swing.GroupLayout.DEFAULT_SIZE, 227, Short.MAX_VALUE)
+                            .addComponent(btnSendMessageSequence, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(txtDecode)
                             .addComponent(txtURL))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -518,11 +518,11 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         //*/
         testCommands = true;
         serialPort.writeBytes(mifareRequest());
-        Thread.sleep(Duration.ofSeconds(1));
+        Thread.sleep(Duration.ofMillis(100));
         serialPort.writeBytes(mifareAnticolision());
-        Thread.sleep(Duration.ofSeconds(1));
+        Thread.sleep(Duration.ofMillis(100));
         serialPort.writeBytes(mifareULSelect());
-        Thread.sleep(Duration.ofSeconds(1));
+        Thread.sleep(Duration.ofMillis(100));
         byte[] dataToWrite = ER302Driver.createNdefUrlMessage(url);
 
         // 2. write blocks (from page 4)
@@ -535,7 +535,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
             int page = 4 + (i / 4);
             byte[] pcmd = mifareULWrite((byte)page, chunk);
             serialPort.writeBytes(pcmd);
-            Thread.sleep(Duration.ofSeconds(1));
+            Thread.sleep(Duration.ofMillis(100));
             log("Writing page " + page + ": " + ER302Driver.byteArrayToHexString(chunk));
         }
         serialPort.writeBytes(cmdHltA());

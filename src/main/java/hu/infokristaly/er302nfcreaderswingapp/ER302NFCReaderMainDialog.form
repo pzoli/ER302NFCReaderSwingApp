@@ -55,7 +55,7 @@
                               <Component id="txtParams" min="-2" pref="90" max="-2" attributes="0"/>
                           </Group>
                           <Component id="txtHexString" max="32767" attributes="0"/>
-                          <Component id="btnSendMessageSequence" pref="227" max="32767" attributes="0"/>
+                          <Component id="btnSendMessageSequence" max="32767" attributes="0"/>
                           <Component id="txtDecode" max="32767" attributes="0"/>
                           <Component id="txtURL" alignment="0" max="32767" attributes="0"/>
                       </Group>
@@ -251,7 +251,7 @@
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel5">
       <Properties>
-        <Property name="text" type="java.lang.String" value="URL:"/>
+        <Property name="text" type="java.lang.String" value="URL to Ultralight:"/>
       </Properties>
     </Component>
   </SubComponents>
