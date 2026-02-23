@@ -33,11 +33,17 @@ param: 00 - off , 01 - blue, 02 - red
 
 Ultralight
 ==========
-MiFare request
+MiFare request:
 AABB0600FFFF01025251
 
-MiFare anticolision
+MiFare anticolision:
 AABB0600FFFF02020404
 
-MiFare UL select
+MiFare UL select:
 AABB0500FFFF120210
+
+UL write (page 8):
+AA BB 0A 00 00 00 13 02 08 31 32 33 34 1D
+
+UL read (page 8):
+AABB0600FFFF08020802
