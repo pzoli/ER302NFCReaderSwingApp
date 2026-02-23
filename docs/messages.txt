@@ -10,6 +10,8 @@ aa bb 06 00 00 00 08 01 02 0B
 Firmware version:
 AABB0500FFFF040105
 
+Classic 1K
+==========
 MiFare request:
 AABB0600FFFF01025251
 
@@ -28,3 +30,14 @@ AA BB 05 00 0000 04 02 06
 Led:
 cmd: 0701
 param: 00 - off , 01 - blue, 02 - red
+
+Ultralight
+==========
+MiFare request
+AABB0600FFFF01025251
+
+MiFare anticolision
+AABB0600FFFF02020404
+
+MiFare UL select
+AABB0500FFFF120210

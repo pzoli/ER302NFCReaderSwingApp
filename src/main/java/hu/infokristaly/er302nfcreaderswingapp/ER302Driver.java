@@ -130,6 +130,7 @@ public class ER302Driver {
     public static byte[] CMD_MIFARE_DECREMENT = {0x0C, 0x02};
     public static byte[] CMD_MIFARE_INCREMENT = {0x0D, 0x02};
     public static byte[] CMD_MIFARE_UL_SELECT = {0x12, 0x02};
+    public static byte[] CMD_MIFARE_UL_WRITE = {0x13, 0x02};
 
     // Default keys
     public static String[] DEFAULT_KEYS = {
