@@ -150,7 +150,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         return result;
     }
 
-    private byte[] readHltA() {
+    private byte[] cmdHltA() {
         byte[] data = {};
         byte[] result = buildCommand(ER302Driver.CMD_MIFARE_HLTA, data);
         return result;
@@ -159,6 +159,15 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     private byte[] mifareULSelect() {
         byte[] data = {};
         byte[] result = buildCommand(ER302Driver.CMD_MIFARE_UL_SELECT, data);
+        return result;
+    }
+
+    private byte[] mifareULWrite(byte page, byte[] data) {
+        ByteBuffer bb = ByteBuffer.allocate(5);
+        bb.put(page);
+        bb.put(data);
+        byte[] input = bb.array();
+        byte[] result = buildCommand(ER302Driver.CMD_MIFARE_UL_WRITE, input);
         return result;
     }
 
@@ -208,6 +217,12 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
 
     private byte[] readBlock(byte sector, byte block) {
         byte[] data = {(byte) (sector * 4 + block)};
+        byte[] result = buildCommand(ER302Driver.CMD_MIFARE_READ_BLOCK, data);
+        return result;
+    }
+
+    private byte[] readULPage(byte page) {
+        byte[] data = {page};
         byte[] result = buildCommand(ER302Driver.CMD_MIFARE_READ_BLOCK, data);
         return result;
     }
@@ -542,20 +557,28 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                     addCommand(new ER302Driver.CommandStruct(4, "MifareSelect", command));
                 } else if (Arrays.equals(typeBytes, ER302Driver.TYPE_MIFARE_UL)) {
                     log("CardType: MiFARE UltraLight");
-                    addCommand(new ER302Driver.CommandStruct(4, "MifareSelect", mifareULSelect()));
+                    addCommand(new ER302Driver.CommandStruct(4, "MifareULSelect", mifareULSelect()));
                 }
             } 
             case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_REQUEST)) -> {
                 typeBytes = res.data;
                 addCommand(new ER302Driver.CommandStruct(3, "Mifare anticolision", mifareAnticolision()));
             } 
-            case ReceivedStruct res when ((Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_SELECT) || Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_UL_SELECT))) -> {
+            case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_SELECT)) -> {
                 if (res.error == 0x00) {
                     addCommand(new ER302Driver.CommandStruct(5, "Auth2", auth2((byte)5)));
                 } else {
                     log("Select error: " + res.error);
                 }
-            } 
+            }
+            case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_UL_SELECT)) -> {
+                byte[] ulWriteData = mifareULWrite((byte)8, new byte[]{0x31,0x32,0x33,0x34});
+                addCommand(new ER302Driver.CommandStruct(5, "ULWrite (page 8)", ulWriteData));
+            }
+            case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_UL_WRITE)) -> {
+                log("UL write return code: "+ res.error);
+                addCommand(new ER302Driver.CommandStruct(6, "Read UL page (8)", readULPage((byte)8)));
+            }
             case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_AUTH2)) -> {
                 switch(state) {
                     case 0 -> addCommand(new ER302Driver.CommandStruct(6, "Init balance (5/1)", initBalance((byte) 5, (byte) 1, 10)));
@@ -570,7 +593,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                         addCommand(new ER302Driver.CommandStruct(20, "Write block (7/0)", writeBlock((byte) 5, (byte) 0, byteBlock)));
                     }
                     case 8 -> addCommand(new ER302Driver.CommandStruct(22, "Read block (7/0)", readBlock((byte) 5, (byte) 0)));
-                    case 9 -> addCommand(new ER302Driver.CommandStruct(24, "Halt", readHltA()));
+                    case 9 -> addCommand(new ER302Driver.CommandStruct(24, "Halt", cmdHltA()));
                     default -> System.err.println("Unexpected state: " + state);
                         
                 }
@@ -598,8 +621,12 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                 state++;
             } 
             case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_READ_BLOCK)) -> {
-                addCommand(new ER302Driver.CommandStruct(7 + (2 * state), "Auth", auth2((byte) 5)));
-                state++;
+                if (Arrays.equals(typeBytes, ER302Driver.TYPE_MIFARE_UL)) {
+                    addCommand(new ER302Driver.CommandStruct(6, "Halt", cmdHltA()));
+                } else {
+                    addCommand(new ER302Driver.CommandStruct(7 + (2 * state), "Auth", auth2((byte) 5)));
+                    state++;
+                }
             } 
             case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_WRITE_BLOCK)) -> {
                 addCommand(new ER302Driver.CommandStruct(7 + (2 * state), "Auth", auth2((byte) 5)));
