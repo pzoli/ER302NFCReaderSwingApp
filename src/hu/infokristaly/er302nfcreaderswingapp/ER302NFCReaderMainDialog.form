@@ -80,7 +80,7 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" max="-2" attributes="0">
                           <Component id="btnDownloadURL" max="32767" attributes="0"/>
-                          <Component id="btnTest" max="32767" attributes="0"/>
+                          <Component id="btnSendSingleMessage" max="32767" attributes="0"/>
                           <Component id="btnDecode" max="32767" attributes="0"/>
                           <Component id="btnClear" max="32767" attributes="0"/>
                           <Component id="btnEncode" max="32767" attributes="0"/>
@@ -112,7 +112,7 @@
               <EmptySpace type="unrelated" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="txtHexString" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="btnTest" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="btnSendSingleMessage" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="jLabel1" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
@@ -203,12 +203,12 @@
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnSendMessageSequenceActionPerformed"/>
       </Events>
     </Component>
-    <Component class="javax.swing.JButton" name="btnTest">
+    <Component class="javax.swing.JButton" name="btnSendSingleMessage">
       <Properties>
         <Property name="text" type="java.lang.String" value="Send"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnTestActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnSendSingleMessageActionPerformed"/>
       </Events>
     </Component>
     <Component class="javax.swing.JTextField" name="txtHexString">

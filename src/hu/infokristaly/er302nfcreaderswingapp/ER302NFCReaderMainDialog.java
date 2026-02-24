@@ -31,11 +31,19 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(ER302NFCReaderMainDialog.class.getName());
     private byte state = 0;
+    private byte ulReadPageIdx = 4;
+    private int ulReadIdx = 0;
+    
+    ByteArrayOutputStream rawData = new ByteArrayOutputStream();
 
     private Queue<ER302Driver.CommandStruct> commands = new LinkedList<ER302Driver.CommandStruct>();
 
     private enum LED {
         RED, BLUE, OFF
+    };
+
+    private enum PROCESS {
+        MESSAGE_SEQUENCE, SINGLE_MESSAGE, URL_MESSAGE
     };
 
     private ER302Driver.CommandStruct lastCommand;
@@ -44,12 +52,10 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     
     private ByteArrayOutputStream bout;
 
-    private static final String newLine = System.getProperty("line.separator");
-
     private byte[] typeBytes;
     private byte[] cardSerialNo;
     
-    private boolean testCommands = false;
+    private PROCESS commandsProcessor = PROCESS.MESSAGE_SEQUENCE;
 
     private void addCommand(ER302Driver.CommandStruct cmd) {
         commands.add(cmd);
@@ -258,7 +264,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         logArea = new javax.swing.JTextArea();
         btnBeep = new javax.swing.JButton();
         btnSendMessageSequence = new javax.swing.JButton();
-        btnTest = new javax.swing.JButton();
+        btnSendSingleMessage = new javax.swing.JButton();
         txtHexString = new javax.swing.JTextField();
         jLabel1 = new javax.swing.JLabel();
         lblDecode = new javax.swing.JLabel();
@@ -295,8 +301,8 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         btnSendMessageSequence.setText("Send message sequence");
         btnSendMessageSequence.addActionListener(this::btnSendMessageSequenceActionPerformed);
 
-        btnTest.setText("Send");
-        btnTest.addActionListener(this::btnTestActionPerformed);
+        btnSendSingleMessage.setText("Send");
+        btnSendSingleMessage.addActionListener(this::btnSendSingleMessageActionPerformed);
 
         jLabel1.setText("Hexa String:");
 
@@ -378,7 +384,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(btnDownloadURL, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(btnTest, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(btnSendSingleMessage, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(btnDecode, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(btnClear, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(btnEncode, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -403,7 +409,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(txtHexString, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnTest)
+                    .addComponent(btnSendSingleMessage)
                     .addComponent(jLabel1))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -474,6 +480,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     }//GEN-LAST:event_connectButtonActionPerformed
 
     private void btnBeepActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBeepActionPerformed
+        commandsProcessor = PROCESS.SINGLE_MESSAGE;
         byte[] beepMsg = beep((byte) 100);
         try {
             serialPort.writeBytes(beepMsg);
@@ -485,7 +492,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     }//GEN-LAST:event_btnBeepActionPerformed
 
     private void btnSendMessageSequenceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSendMessageSequenceActionPerformed
-        testCommands = false;
+        commandsProcessor = PROCESS.MESSAGE_SEQUENCE;
         if (serialPort != null) {
             try {
                 logArea.setText("");
@@ -505,8 +512,8 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         }
     }//GEN-LAST:event_btnSendMessageSequenceActionPerformed
 
-    private void btnTestActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTestActionPerformed
-        testCommands = true;
+    private void btnSendSingleMessageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSendSingleMessageActionPerformed
+        commandsProcessor = PROCESS.SINGLE_MESSAGE;
         if (serialPort != null) {
             try {
                 logArea.setText("");
@@ -521,7 +528,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                 log(ex.getMessage());
             }
         }
-    }//GEN-LAST:event_btnTestActionPerformed
+    }//GEN-LAST:event_btnSendSingleMessageActionPerformed
 
     private void btnDecodeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDecodeActionPerformed
         ReceivedStruct struct = ER302Driver.decodeReceivedData(ER302Driver.hexStringToByteArray(txtDecode.getText()));
@@ -544,15 +551,8 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         txtHexString.setText(ER302Driver.byteArrayToHexString(buildCommand(ER302Driver.hexStringToByteArray(txtCmd.getText()), ER302Driver.hexStringToByteArray(txtParams.getText()))));
     }//GEN-LAST:event_btnEncodeActionPerformed
 
-    public void writeUrlToTag(String url) throws SerialPortException, InterruptedException {
-        // 0. prepare the Capability Container
-        /*
-        byte[] cc = new byte[]{ 0x01, 0x03, (byte)0xA0, 0x10 };
-        byte[] cmd = mifareULWrite((byte)4, cc); // 4-es lap (fontos!)
-        serialPort.writeBytes(cmd);
-        Thread.sleep(Duration.ofSeconds(1));
-        //*/
-        testCommands = true;
+    public void writeUrlToTag(String url) throws SerialPortException, InterruptedException, IllegalArgumentException {
+        commandsProcessor = PROCESS.SINGLE_MESSAGE;
         serialPort.writeBytes(mifareRequest());
         Thread.sleep(Duration.ofMillis(100));
         serialPort.writeBytes(mifareAnticolision());
@@ -561,13 +561,11 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         Thread.sleep(Duration.ofMillis(100));
         byte[] dataToWrite = ER302Driver.createNdefUrlMessage(url);
 
-        // 2. write blocks (from page 4)
         for (int i = 0; i < dataToWrite.length; i += 4) {
             byte[] chunk = new byte[4];
             int remaining = dataToWrite.length - i;
             System.arraycopy(dataToWrite, i, chunk, 0, Math.min(4, remaining));
 
-            //int page = 5 + (i / 4);
             int page = 4 + (i / 4);
             byte[] pcmd = mifareULWrite((byte)page, chunk);
             serialPort.writeBytes(pcmd);
@@ -580,13 +578,31 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     private void btnUploadURLActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUploadURLActionPerformed
         try {
             writeUrlToTag(txtURL.getText().trim());
-        } catch (SerialPortException | InterruptedException ex) {
+        } catch (SerialPortException | IllegalArgumentException | InterruptedException ex) {
             System.getLogger(ER302NFCReaderMainDialog.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
         }
     }//GEN-LAST:event_btnUploadURLActionPerformed
 
     private void btnDownloadURLActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDownloadURLActionPerformed
-        // TODO add your handling code here:
+        commandsProcessor = PROCESS.URL_MESSAGE;
+        ulReadPageIdx = 4;
+        rawData = new ByteArrayOutputStream();
+        if (serialPort != null) {
+            try {
+                logArea.setText("");
+                byte[] beepMsg = beep((byte) 50);
+                lastCommand = new ER302Driver.CommandStruct(0, "Beep", beepMsg);
+
+                addCommand(new ER302Driver.CommandStruct(1, "Firmware version", readFirmware()));
+                addCommand(new ER302Driver.CommandStruct(2, "MiFare request", mifareRequest()));
+
+                log("Beep message: "+ER302Driver.byteArrayToHexString(beepMsg));
+                serialPort.writeBytes(beepMsg);
+            } catch (SerialPortException ex) {
+                Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
+                log(ex.getMessage());
+            }
+        }
     }//GEN-LAST:event_btnDownloadURLActionPerformed
 
     /**
@@ -636,7 +652,54 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         connectButton.setText(b ? "Disconnect" : "Connect");
         serialPortList.setEnabled(!b);
     }
-  
+
+    private void readUrlProcessCommands(ER302Driver.ReceivedStruct result) {
+        if (lastCommand == null) {
+            return;
+        }
+        log(lastCommand.id + ". " + lastCommand.descrition + " (data):" + ER302Driver.byteArrayToHexString(result.data));
+        switch(result) {
+            case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_READ_FW_VERSION)) -> {
+                log("Firmware versino:" + new String(res.data));
+            }
+            case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_ANTICOLISION)) -> {
+                cardSerialNo = res.data;
+                if (Arrays.equals(typeBytes, ER302Driver.TYPE_MIFARE_UL)) {
+                    log("CardType: MiFARE UltraLight");
+                    addCommand(new ER302Driver.CommandStruct(4, "MifareULSelect", mifareULSelect()));
+                }
+            }
+            case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_REQUEST)) -> {
+                typeBytes = res.data;
+                addCommand(new ER302Driver.CommandStruct(3, "Mifare anticolision", mifareAnticolision()));
+            }
+            case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_UL_SELECT)) -> {
+                addCommand(new ER302Driver.CommandStruct(5, "Mifare read Ultralight", mifareULRead(ulReadPageIdx)));                
+            }
+            case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_READ_BLOCK)) -> {
+                boolean foundURL = false;
+                byte[] actualPageData = Arrays.copyOfRange(res.data, 0, 4);
+                String pageHexData = ER302Driver.byteArrayToHexString(actualPageData);
+                log("Actual page ("+ulReadPageIdx+") bytes: " + pageHexData);
+                for (byte b : actualPageData) {
+                    if ((b & 0xFF) == 0xFE) {
+                        txtURLDownload.setText(ER302Driver.parseNdefUri(rawData.toByteArray()));
+                        foundURL = true;
+                        break;
+                    }
+                    rawData.write(b);
+                    ulReadIdx++; 
+                }                
+                if (!foundURL && ulReadPageIdx<40){
+                    ulReadPageIdx += 1;
+                    addCommand(new ER302Driver.CommandStruct(5, "Mifare read Ultralight", mifareULRead(ulReadPageIdx)));
+                }
+            }
+
+            default-> log("Skipped command: " + ER302Driver.byteArrayToHexString(result.cmd));
+            
+        }
+    }
     private void iterateCommands(ER302Driver.ReceivedStruct result) {
         if (lastCommand == null) {
             return;
@@ -757,9 +820,11 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                     log("received[" + input + "]");
                     ER302Driver.ReceivedStruct result = ER302Driver.decodeReceivedData(buffer);
                     while ((result != null) && (result.length > 0)) {
-                        if (!testCommands)
-                            iterateCommands(result);
-                        
+                        switch(commandsProcessor) {
+                            case PROCESS.MESSAGE_SEQUENCE: iterateCommands(result); break;
+                            case PROCESS.URL_MESSAGE: readUrlProcessCommands(result); break;
+                            default:
+                        }
                         if (result.length < buffer.length) {
                             buffer = Arrays.copyOfRange(buffer, result.length, buffer.length);
                         } else {
@@ -799,7 +864,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     private javax.swing.JButton btnDownloadURL;
     private javax.swing.JButton btnEncode;
     private javax.swing.JButton btnSendMessageSequence;
-    private javax.swing.JButton btnTest;
+    private javax.swing.JButton btnSendSingleMessage;
     private javax.swing.JButton btnUploadURL;
     private javax.swing.JButton connectButton;
     private javax.swing.JLabel jLabel1;

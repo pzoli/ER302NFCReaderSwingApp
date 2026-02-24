@@ -21,6 +21,29 @@ import java.util.List;
  */
 public class ER302Driver {
 
+    public static String parseNdefUri(byte[] data) {
+        if (data.length < 5) return null;
+
+        // data[0] = 0x03 (NDEF Tag)
+        // data[1] = hossz
+        // data[2] = 0xD1 (Header)
+        // data[5] = Prefix (0x01, 0x02, 0x03, 0x04...)
+
+        int prefixCode = data[6] & 0xFF;
+        String prefix = "";
+        switch (prefixCode) {
+            case 0x01: prefix = "http://www."; break;
+            case 0x02: prefix = "https://www."; break;
+            case 0x03: prefix = "http://"; break;
+            case 0x04: prefix = "https://"; break;
+            default:   prefix = ""; break;
+        }
+
+        // A tényleges URL a 7. bájttól indul
+        byte[] urlBytes = Arrays.copyOfRange(data, 7, data.length);
+        return prefix + new String(urlBytes, Charset.forName("UTF-8"));
+    }
+    
     public static class CommandStruct {
         int id;
         byte[] cmd;
@@ -238,14 +261,28 @@ public class ER302Driver {
     }
 
     public static byte[] createNdefUrlMessage(String url) {
-        // 1. URL prefix rövidítés (helytakarékosság miatt)
-        // 0x01: http://www. | 0x02: https://www. | 0x03: http:// | 0x04: https://
-        byte prefix = 0x04; // Alapértelmezett: https://
+        byte prefix;
         String cleanUrl = url;
 
-        if (url.startsWith("https://")) cleanUrl = url.substring(8);
-        else if (url.startsWith("http://")) { prefix = 0x03; cleanUrl = url.substring(7); }
-
+        switch(url) {
+            case String u when (url.startsWith("https://www.")) -> {
+                cleanUrl = url.substring(12);
+                prefix = 0x02;
+            }
+            case String u when (url.startsWith("http://www.")) -> {
+                cleanUrl = url.substring(11);
+                prefix = 0x01;
+            }
+            case String u when (url.startsWith("https://")) -> {
+                cleanUrl = url.substring(8);
+                prefix = 0x04;
+            }
+            case String u when (url.startsWith("http://")) -> {
+                cleanUrl = url.substring(7);
+                prefix = 0x03;
+            }
+            default -> {throw new IllegalArgumentException("Not a valid URL!");}
+        }
         byte[] urlBytes = cleanUrl.getBytes(Charset.forName("UTF-8"));
         int payloadLen = urlBytes.length + 1; // +1 a prefix miatt
 
