@@ -3,8 +3,8 @@ Sample JavaSE 25 Swing application for communicate with ER302 (YHY523U) over ser
 Tested on Ubuntu Linux 17.10/24.04 and Windows 10/11 with MiFare Classic 1K (ISO14443A) card.
 
 ## Install ER302 Windows Universal Driver (Windows 11)
-Download the CP210x_Universal_Windows_Driver.zip from [silabs.com](https://www.silabs.com/software-and-tools/usb-to-uart-bridge-vcp-drivers?tab=downloads)
-- Unzip, enter CP210x directory.
+- make directory CP210x and enter to this
+- download the CP210x_Universal_Windows_Driver.zip from [silabs.com](https://www.silabs.com/software-and-tools/usb-to-uart-bridge-vcp-drivers?tab=downloads) and Unzip files
 - Run UpdateParam.bat
 - right click on silabser.inf and press Install on the popup menu.
 
