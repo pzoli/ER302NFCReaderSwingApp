@@ -2,9 +2,9 @@
 Sample JavaSE 25 Swing application for communicate with ER302 (YHY523U) over serial port (JSSC library).
 Tested on Ubuntu Linux 17.10/24.04 and Windows 10/11 with MiFare Classic 1K (ISO14443A) card.
 
-## Install ER302 Windows Universal Driver (Windows 11)
+## Install ER302 Windows Universal Driver (Windows 10/11)
 - make directory CP210x and enter to this
-- download the CP210x_Universal_Windows_Driver.zip from [silabs.com](https://www.silabs.com/software-and-tools/usb-to-uart-bridge-vcp-drivers?tab=downloads) and Unzip files
+- download the CP210x_Universal_Windows_Driver.zip to this directory from [silabs.com](https://www.silabs.com/software-and-tools/usb-to-uart-bridge-vcp-drivers?tab=downloads) and Unzip files
 - Run UpdateParam.bat
 - right click on silabser.inf and press Install on the popup menu.
 
