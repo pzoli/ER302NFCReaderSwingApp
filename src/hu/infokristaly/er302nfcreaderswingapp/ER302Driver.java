@@ -45,38 +45,97 @@ public class ER302Driver {
     }
     
     public static String decodeNdefText(byte[] raw) {
-    try {
-        // Keressük meg a 0x54 ('T') karaktert, ami a Text Record típusa
-        int typeIndex = -1;
-        for (int i = 0; i < raw.length; i++) {
-            if (raw[i] == 0x54) { 
-                typeIndex = i;
-                break;
+        try {
+            // Keressük meg a 0x54 ('T') karaktert, ami a Text Record típusa
+            int typeIndex = -1;
+            for (int i = 0; i < raw.length; i++) {
+                if (raw[i] == 0x54) { 
+                    typeIndex = i;
+                    break;
+                }
             }
+
+            if (typeIndex == -1) return "Nem Text Record.";
+
+            // A Payload a típusjelző ('T') után kezdődik
+            int payloadStartIndex = typeIndex + 1;
+
+            // Az első bájt a státuszbájt: 
+            // Bit 7: UTF-8 (0) vagy UTF-16 (1)
+            // Bit 5-0: A nyelvkód hossza (pl. "en" = 2)
+            int statusByte = raw[payloadStartIndex] & 0xFF;
+            int langCodeLength = statusByte & 0x3F; // Az alsó 6 bit
+
+            // Kiszámoljuk, hol kezdődik a tényleges szöveg
+            int textStartIndex = payloadStartIndex + 1 + langCodeLength;
+            int textLength = raw.length - textStartIndex;
+
+            if (textLength <= 0) return "";
+
+            return new String(raw, textStartIndex, textLength, Charset.forName("UTF-8"));
+        } catch (Exception e) {
+            return "Hiba a dekódolás során: " + e.getMessage();
         }
-
-        if (typeIndex == -1) return "Nem Text Record.";
-
-        // A Payload a típusjelző ('T') után kezdődik
-        int payloadStartIndex = typeIndex + 1;
-        
-        // Az első bájt a státuszbájt: 
-        // Bit 7: UTF-8 (0) vagy UTF-16 (1)
-        // Bit 5-0: A nyelvkód hossza (pl. "en" = 2)
-        int statusByte = raw[payloadStartIndex] & 0xFF;
-        int langCodeLength = statusByte & 0x3F; // Az alsó 6 bit
-        
-        // Kiszámoljuk, hol kezdődik a tényleges szöveg
-        int textStartIndex = payloadStartIndex + 1 + langCodeLength;
-        int textLength = raw.length - textStartIndex;
-
-        if (textLength <= 0) return "";
-
-        return new String(raw, textStartIndex, textLength, Charset.forName("UTF-8"));
-    } catch (Exception e) {
-        return "Hiba a dekódolás során: " + e.getMessage();
     }
-}
+    
+    public static byte[] createNdefVCardMessage(String name, String phone, String email) {
+        // 1. A vCard szöveg összeállítása (vCard 2.1 vagy 3.0 szabvány)
+        String vcard = "BEGIN:VCARD\n" +
+                       "VERSION:3.0\n" +
+                       "FN:" + name + "\n" +
+                       "TEL:" + phone + "\n" +
+                       "EMAIL:" + email + "\n" +
+                       "END:VCARD";
+
+        byte[] vcardBytes = vcard.getBytes(Charset.forName("UTF-8"));
+        byte[] typeBytes = "text/vcard".getBytes(Charset.forName("US-ASCII"));
+
+        // 2. NDEF Record Header
+        // MB=1, ME=1, SR=1, TNF=0x02
+        byte[] ndef = new byte[vcardBytes.length + typeBytes.length + 3];
+        ndef[0] = (byte) 0xD2; 
+        ndef[1] = (byte) typeBytes.length; // "text/vcard" hossza
+        ndef[2] = (byte) vcardBytes.length; // Payload hossza
+
+        // Típus másolása
+        System.arraycopy(typeBytes, 0, ndef, 3, typeBytes.length);
+        // Payload (vCard szöveg) másolása
+        System.arraycopy(vcardBytes, 0, ndef, 3 + typeBytes.length, vcardBytes.length);
+
+        // 3. TLV boríték (Tag-Length-Value)
+        byte[] tlv = new byte[ndef.length + 3];
+        tlv[0] = 0x03;               // NDEF Tag
+        tlv[1] = (byte) ndef.length; // Üzenet hossza
+        System.arraycopy(ndef, 0, tlv, 2, ndef.length);
+        tlv[tlv.length - 1] = (byte) 0xFE; // Terminator
+
+        return tlv;
+    }
+
+    public static String decodeNdefVCard(byte[] toByteArray) {
+        try {
+            // 1. Keressük meg a "text/vcard" típusjelzőt
+            String rawString = new String(toByteArray, Charset.forName("US-ASCII"));
+            int typeIndex = rawString.indexOf("text/vcard");
+
+            if (typeIndex == -1) return "Nem található vCard rekord ezen a kártyán.";
+
+            // 2. A payload (a tényleges vCard szöveg) a típusjelző után kezdődik
+            // A MIME típusú NDEF rekordnál (0xD2) a fejléc: [Header][TypeLen][PayloadLen]
+            // Kiszámoljuk a kezdőpontot: typeIndex + "text/vcard".length()
+            int vCardStartIndex = typeIndex + "text/vcard".length();
+
+            // 3. A maradék bájtokat UTF-8-ként értelmezzük
+            byte[] vCardBytes = Arrays.copyOfRange(toByteArray, vCardStartIndex, toByteArray.length);
+            String vCardContent = new String(vCardBytes, Charset.forName("UTF-8")).trim();
+
+            // Tisztítás: ha a végén ott maradtak vezérlő bájtok vagy a 0xFE, vágjuk le
+            return vCardContent.replaceAll("[^\\x20-\\x7E\\s]", ""); 
+        } catch (Exception e) {
+            return "Hiba a vCard dekódolása közben: " + e.getMessage();
+        }
+    }
+    
     public static class CommandStruct {
         int id;
         byte[] cmd;
