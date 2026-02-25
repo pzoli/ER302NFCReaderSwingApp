@@ -46,6 +46,6 @@ With this feature you can encode a command and it's params info a sendable hexad
 
 ## Screenshot (v0.1)
 
-![Screenshot.jpg](docs/Screenshot.png)
+![Screenshot1.png](docs/Screenshot1.png)![Screenshot2.png](docs/Screenshot2.png)
 
 (sponsored by https://nfcshop.hu/)
