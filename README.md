@@ -17,6 +17,7 @@ target > java -jar ER302NFCReaderSwingApp-1.0-SNAPSHOT-jar-with-dependencies.jar
 ## Usage
 Connect ER302 reader to the computer USB port before run the application.
 
+## General functions
 ### Send message sequence is used for sending messages:
 - beep message
 - read firmware version
@@ -44,7 +45,12 @@ Whit this feature you can decode a message to a visually readable JSON format.
 With this feature you can encode a command and it's params info a sendable hexadecimal message.
 (Output of this function is the Hexa message field component. Than you can send as a message to the ER302)
 
-## Screenshot (v0.1)
+## Ultralight functions
+- NDEF URL upload / download
+- NDEF Text upload / download
+- NDEF vCard upload / download
+
+## Screenshot (v0.3)
 
 ![Screenshot1.png](docs/Screenshot1.png)![Screenshot2.png](docs/Screenshot2.png)
 
