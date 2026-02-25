@@ -44,6 +44,39 @@ public class ER302Driver {
         return prefix + new String(urlBytes, Charset.forName("UTF-8"));
     }
     
+    public static String decodeNdefText(byte[] raw) {
+    try {
+        // Keressük meg a 0x54 ('T') karaktert, ami a Text Record típusa
+        int typeIndex = -1;
+        for (int i = 0; i < raw.length; i++) {
+            if (raw[i] == 0x54) { 
+                typeIndex = i;
+                break;
+            }
+        }
+
+        if (typeIndex == -1) return "Nem Text Record.";
+
+        // A Payload a típusjelző ('T') után kezdődik
+        int payloadStartIndex = typeIndex + 1;
+        
+        // Az első bájt a státuszbájt: 
+        // Bit 7: UTF-8 (0) vagy UTF-16 (1)
+        // Bit 5-0: A nyelvkód hossza (pl. "en" = 2)
+        int statusByte = raw[payloadStartIndex] & 0xFF;
+        int langCodeLength = statusByte & 0x3F; // Az alsó 6 bit
+        
+        // Kiszámoljuk, hol kezdődik a tényleges szöveg
+        int textStartIndex = payloadStartIndex + 1 + langCodeLength;
+        int textLength = raw.length - textStartIndex;
+
+        if (textLength <= 0) return "";
+
+        return new String(raw, textStartIndex, textLength, Charset.forName("UTF-8"));
+    } catch (Exception e) {
+        return "Hiba a dekódolás során: " + e.getMessage();
+    }
+}
     public static class CommandStruct {
         int id;
         byte[] cmd;
@@ -302,6 +335,33 @@ public class ER302Driver {
         tlv[1] = (byte) ndef.length;  // L: Message length
         System.arraycopy(ndef, 0, tlv, 2, ndef.length);
         tlv[tlv.length - 1] = (byte) 0xFE; // Terminator TLV
+
+        return tlv;
+    }
+    
+    public static byte[] createNdefTextMessage(String text) {
+        byte[] langBytes = "en".getBytes(Charset.forName("US-ASCII"));
+        byte[] textBytes = text.getBytes(Charset.forName("UTF-8"));
+        int payloadLen = 1 + langBytes.length + textBytes.length;
+
+        // 1. NDEF Record Header
+        byte[] ndef = new byte[payloadLen + 4];
+        ndef[0] = (byte) 0xD1; // MB=1, ME=1, SR=1, TNF=0x01
+        ndef[1] = 0x01;        // Type Length ("T")
+        ndef[2] = (byte) payloadLen; // Teljes Payload hossz
+        ndef[3] = 0x54;        // Record Type: "T" (Text)
+
+        // 2. Payload: Status bájt + Nyelv + Szöveg
+        ndef[4] = (byte) langBytes.length; // Pl. 2 (en)
+        System.arraycopy(langBytes, 0, ndef, 5, langBytes.length);
+        System.arraycopy(textBytes, 0, ndef, 5 + langBytes.length, textBytes.length);
+
+        // 3. TLV boríték (Tag-Length-Value)
+        byte[] tlv = new byte[ndef.length + 3];
+        tlv[0] = 0x03;                // NDEF Message tag
+        tlv[1] = (byte) ndef.length;  // Hossz
+        System.arraycopy(ndef, 0, tlv, 2, ndef.length);
+        tlv[tlv.length - 1] = (byte) 0xFE; // Terminator
 
         return tlv;
     }
