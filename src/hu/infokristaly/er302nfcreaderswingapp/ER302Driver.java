@@ -130,7 +130,7 @@ public class ER302Driver {
             String vCardContent = new String(vCardBytes, Charset.forName("UTF-8")).trim();
 
             // Tisztítás: ha a végén ott maradtak vezérlő bájtok vagy a 0xFE, vágjuk le
-            return vCardContent.replaceAll("[^\\x20-\\x7E\\s]", ""); 
+            return vCardContent; //.replaceAll("[^\\x20-\\x7E\\s]", ""); 
         } catch (Exception e) {
             return "Hiba a vCard dekódolása közben: " + e.getMessage();
         }
