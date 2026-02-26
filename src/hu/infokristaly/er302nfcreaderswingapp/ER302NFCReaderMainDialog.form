@@ -114,7 +114,7 @@
     </Container>
     <Component class="javax.swing.JLabel" name="jLabel6">
       <Properties>
-        <Property name="text" type="java.lang.String" value="v0.3"/>
+        <Property name="text" type="java.lang.String" value="v0.4"/>
       </Properties>
     </Component>
     <Container class="javax.swing.JTabbedPane" name="jTabbedPane">

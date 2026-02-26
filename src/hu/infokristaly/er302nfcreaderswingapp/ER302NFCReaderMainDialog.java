@@ -328,7 +328,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         logArea.setRows(5);
         jScrollPane1.setViewportView(logArea);
 
-        jLabel6.setText("v0.3");
+        jLabel6.setText("v0.4");
 
         jLabel1.setText("Hexa String:");
 
