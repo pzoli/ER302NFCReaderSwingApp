@@ -10,6 +10,9 @@ aa bb 06 00 00 00 08 01 02 0B
 Firmware version:
 AABB0500FFFF040105
 
+Beep
+AABB0600FFFF06016463
+
 Classic 1K
 ==========
 MiFare request:
