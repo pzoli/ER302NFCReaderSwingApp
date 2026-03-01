@@ -21,6 +21,79 @@ import java.util.List;
  */
 public class ER302Driver {
 
+    public static byte[] createNdefUrlMessage(String url) {
+        byte prefix;
+        String cleanUrl = url;
+
+        switch(url) {
+            case String u when (url.startsWith("https://www.")) -> {
+                cleanUrl = url.substring(12);
+                prefix = 0x02;
+            }
+            case String u when (url.startsWith("http://www.")) -> {
+                cleanUrl = url.substring(11);
+                prefix = 0x01;
+            }
+            case String u when (url.startsWith("https://")) -> {
+                cleanUrl = url.substring(8);
+                prefix = 0x04;
+            }
+            case String u when (url.startsWith("http://")) -> {
+                cleanUrl = url.substring(7);
+                prefix = 0x03;
+            }
+            default -> {throw new IllegalArgumentException("Not a valid URL!");}
+        }
+        byte[] urlBytes = cleanUrl.getBytes(Charset.forName("UTF-8"));
+        int payloadLen = urlBytes.length + 1; // +1 a prefix miatt
+
+        // 2. NDEF keretezés
+        byte[] ndef = new byte[payloadLen + 4];
+        ndef[0] = (byte) 0xD1; // Record Header (MB=1, ME=1, SR=1, TNF=0x01)
+        ndef[1] = 0x01;        // Type Length (1 bájt, azaz az "U")
+        ndef[2] = (byte) payloadLen; // Payload Length
+        ndef[3] = 0x55;        // Record Type: "U" (URI)
+        ndef[4] = prefix;      // URI Prefix (https://)
+
+        System.arraycopy(urlBytes, 0, ndef, 5, urlBytes.length);
+
+        // 3. TLV (Tag-Length-Value) boríték (Az NFC kártyának kell)
+        byte[] tlv = new byte[ndef.length + 3];
+        tlv[0] = 0x03;                // T: NDEF Message tag
+        tlv[1] = (byte) ndef.length;  // L: Message length
+        System.arraycopy(ndef, 0, tlv, 2, ndef.length);
+        tlv[tlv.length - 1] = (byte) 0xFE; // Terminator TLV
+
+        return tlv;
+    }
+    
+    public static byte[] createNdefTextMessage(String text) {
+        byte[] langBytes = "en".getBytes(Charset.forName("US-ASCII"));
+        byte[] textBytes = text.getBytes(Charset.forName("UTF-8"));
+        int payloadLen = 1 + langBytes.length + textBytes.length;
+
+        // 1. NDEF Record Header
+        byte[] ndef = new byte[payloadLen + 4];
+        ndef[0] = (byte) 0xD1; // MB=1, ME=1, SR=1, TNF=0x01
+        ndef[1] = 0x01;        // Type Length ("T")
+        ndef[2] = (byte) payloadLen; // Teljes Payload hossz
+        ndef[3] = 0x54;        // Record Type: "T" (Text)
+
+        // 2. Payload: Status bájt + Nyelv + Szöveg
+        ndef[4] = (byte) langBytes.length; // Pl. 2 (en)
+        System.arraycopy(langBytes, 0, ndef, 5, langBytes.length);
+        System.arraycopy(textBytes, 0, ndef, 5 + langBytes.length, textBytes.length);
+
+        // 3. TLV boríték (Tag-Length-Value)
+        byte[] tlv = new byte[ndef.length + 3];
+        tlv[0] = 0x03;                // NDEF Message tag
+        tlv[1] = (byte) ndef.length;  // Hossz
+        System.arraycopy(ndef, 0, tlv, 2, ndef.length);
+        tlv[tlv.length - 1] = (byte) 0xFE; // Terminator
+
+        return tlv;
+    }
+
     public static String parseNdefUri(byte[] data) {
         if (data.length < 5) return null;
 
@@ -350,78 +423,5 @@ public class ER302Driver {
             }
         }
         return result;
-    }
-
-    public static byte[] createNdefUrlMessage(String url) {
-        byte prefix;
-        String cleanUrl = url;
-
-        switch(url) {
-            case String u when (url.startsWith("https://www.")) -> {
-                cleanUrl = url.substring(12);
-                prefix = 0x02;
-            }
-            case String u when (url.startsWith("http://www.")) -> {
-                cleanUrl = url.substring(11);
-                prefix = 0x01;
-            }
-            case String u when (url.startsWith("https://")) -> {
-                cleanUrl = url.substring(8);
-                prefix = 0x04;
-            }
-            case String u when (url.startsWith("http://")) -> {
-                cleanUrl = url.substring(7);
-                prefix = 0x03;
-            }
-            default -> {throw new IllegalArgumentException("Not a valid URL!");}
-        }
-        byte[] urlBytes = cleanUrl.getBytes(Charset.forName("UTF-8"));
-        int payloadLen = urlBytes.length + 1; // +1 a prefix miatt
-
-        // 2. NDEF keretezés
-        byte[] ndef = new byte[payloadLen + 4];
-        ndef[0] = (byte) 0xD1; // Record Header (MB=1, ME=1, SR=1, TNF=0x01)
-        ndef[1] = 0x01;        // Type Length (1 bájt, azaz az "U")
-        ndef[2] = (byte) payloadLen; // Payload Length
-        ndef[3] = 0x55;        // Record Type: "U" (URI)
-        ndef[4] = prefix;      // URI Prefix (https://)
-
-        System.arraycopy(urlBytes, 0, ndef, 5, urlBytes.length);
-
-        // 3. TLV (Tag-Length-Value) boríték (Az NFC kártyának kell)
-        byte[] tlv = new byte[ndef.length + 3];
-        tlv[0] = 0x03;                // T: NDEF Message tag
-        tlv[1] = (byte) ndef.length;  // L: Message length
-        System.arraycopy(ndef, 0, tlv, 2, ndef.length);
-        tlv[tlv.length - 1] = (byte) 0xFE; // Terminator TLV
-
-        return tlv;
-    }
-    
-    public static byte[] createNdefTextMessage(String text) {
-        byte[] langBytes = "en".getBytes(Charset.forName("US-ASCII"));
-        byte[] textBytes = text.getBytes(Charset.forName("UTF-8"));
-        int payloadLen = 1 + langBytes.length + textBytes.length;
-
-        // 1. NDEF Record Header
-        byte[] ndef = new byte[payloadLen + 4];
-        ndef[0] = (byte) 0xD1; // MB=1, ME=1, SR=1, TNF=0x01
-        ndef[1] = 0x01;        // Type Length ("T")
-        ndef[2] = (byte) payloadLen; // Teljes Payload hossz
-        ndef[3] = 0x54;        // Record Type: "T" (Text)
-
-        // 2. Payload: Status bájt + Nyelv + Szöveg
-        ndef[4] = (byte) langBytes.length; // Pl. 2 (en)
-        System.arraycopy(langBytes, 0, ndef, 5, langBytes.length);
-        System.arraycopy(textBytes, 0, ndef, 5 + langBytes.length, textBytes.length);
-
-        // 3. TLV boríték (Tag-Length-Value)
-        byte[] tlv = new byte[ndef.length + 3];
-        tlv[0] = 0x03;                // NDEF Message tag
-        tlv[1] = (byte) ndef.length;  // Hossz
-        System.arraycopy(ndef, 0, tlv, 2, ndef.length);
-        tlv[tlv.length - 1] = (byte) 0xFE; // Terminator
-
-        return tlv;
     }
 }
