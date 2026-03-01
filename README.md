@@ -2,7 +2,7 @@
 Sample JavaSE 25 Swing application for communicate with ER302 (YHY523U) over serial port (JSSC library).
 Tested on Ubuntu Linux 17.10/24.04, Windows 10/11 and MacOS 26.3 with MiFare Classic 1K (ISO14443A) card.
 On macOS 26.3, add and enable Terminal and NetBeans in System Preferences / Privacy & Security / Full Disk Access. Don't forget to restart them after setup.
-
+Device driver is part of the macOS, no installation required.
 
 ## Install ER302 Windows Universal Driver (Windows 10/11)
 - make CP210x directory to the filesystem and enter to this
