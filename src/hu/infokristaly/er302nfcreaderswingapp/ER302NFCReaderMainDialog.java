@@ -48,6 +48,25 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         serialPort.writeBytes(beepMsg);
     }
 
+    private boolean checkPasswordFormat(String password) {
+        if (password.length() != 12) return false;
+        try {
+            ER302Driver.hexStringToByteArray(password);
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean checkNumberInput(String text) {
+        try {
+            int result = Integer.parseInt(text);
+        } catch (NumberFormatException ex) {
+            return false;
+        }
+        return true;
+    }
+
     private enum LED {
         RED, BLUE, OFF
     };
@@ -842,7 +861,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                         }
                     }
                 } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(null, "Nem megengedett szám formátum!", "Hiba", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "Not a valid number format!", "Error", JOptionPane.ERROR_MESSAGE);
                     System.err.println(ex.getMessage());
                 }
             }         
@@ -976,6 +995,10 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         commandsProcessor = PROCESS.MESSAGE_SEQUENCE;
         if (serialPort != null) {
             logArea.setText("");
+            if (!checkPasswordFormat(txtKeyString.getText().trim())) {
+                JOptionPane.showMessageDialog(null, "Not a valid password format!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
             state = 0;
             try {
                 sendInitialCommands();
@@ -1052,6 +1075,18 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         commandsProcessor = PROCESS.SET_BALANCE_MESSAGE;
         if (serialPort != null) {
             logArea.setText("");
+            if (!checkPasswordFormat(txtSectorPassword.getText().trim())) {
+                JOptionPane.showMessageDialog(null, "Not a valid password format!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (!checkNumberInput(txtBalance.getText())) {
+                JOptionPane.showMessageDialog(null, "Not a valid balance number format!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (!checkNumberInput(txtModification.getText())) {
+                JOptionPane.showMessageDialog(null, "Not a valid modification number format!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
             try {
                 sendInitialCommands();
             } catch (SerialPortException ex) {
@@ -1065,6 +1100,18 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         commandsProcessor = PROCESS.GET_BALANCE_MESSAGE;
         if (serialPort != null) {
             logArea.setText("");
+            if (!checkPasswordFormat(txtSectorPassword.getText().trim())) {
+                JOptionPane.showMessageDialog(null, "Not a valid password format!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (!checkNumberInput(txtBalance.getText())) {
+                JOptionPane.showMessageDialog(null, "Not a valid balance number format!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (!checkNumberInput(txtModification.getText())) {
+                JOptionPane.showMessageDialog(null, "Not a valid modification number format!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
             try {
                 sendInitialCommands();
             } catch (SerialPortException ex) {
@@ -1078,6 +1125,18 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         commandsProcessor = PROCESS.INC_BALANCE_MESSAGE;
         if (serialPort != null) {
             logArea.setText("");
+            if (!checkPasswordFormat(txtSectorPassword.getText().trim())) {
+                JOptionPane.showMessageDialog(null, "Not a valid password format!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (!checkNumberInput(txtBalance.getText())) {
+                JOptionPane.showMessageDialog(null, "Not a valid balance number format!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (!checkNumberInput(txtModification.getText())) {
+                JOptionPane.showMessageDialog(null, "Not a valid modification number format!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
             try {
                 sendInitialCommands();
             } catch (SerialPortException ex) {
@@ -1091,6 +1150,18 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         commandsProcessor = PROCESS.DEC_BALANCE_MESSAGE;
         if (serialPort != null) {
             logArea.setText("");
+            if (!checkPasswordFormat(txtSectorPassword.getText().trim())) {
+                JOptionPane.showMessageDialog(null, "Not a valid password format!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (!checkNumberInput(txtBalance.getText())) {
+                JOptionPane.showMessageDialog(null, "Not a valid balance number format!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (!checkNumberInput(txtModification.getText())) {
+                JOptionPane.showMessageDialog(null, "Not a valid modification number format!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
             try {
                 sendInitialCommands();
             } catch (SerialPortException ex) {
