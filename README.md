@@ -42,6 +42,7 @@ With this feature you can send a hexadecimal string to the reader.
 ### Decode a message
 Whit this feature you can decode a message to a visually readable JSON format.
 (Output of this message is into the log component)
+On MacOS use Ctrl+C and Ctrl+V to copy-paste values from the log component.
 
 ### Encode a message
 With this feature you can encode a command and it's params info a sendable hexadecimal message.
@@ -52,7 +53,11 @@ With this feature you can encode a command and it's params info a sendable hexad
 - NDEF Text upload / download
 - NDEF vCard upload / download
 
-## Screenshot (v0.3)
+## MicroPayment functions
+- Set and get balance value
+- Increment and decrement balance with modification value
+
+## Screenshot (v0.5)
 
 ![Screenshot1.png](docs/Screenshot1.png)
 ![Screenshot2.png](docs/Screenshot2.png)
