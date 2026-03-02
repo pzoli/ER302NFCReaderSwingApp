@@ -18,6 +18,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 import jssc.SerialPort;
 import jssc.SerialPortEvent;
 import jssc.SerialPortException;
@@ -821,26 +822,28 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                 }
             }
             case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_AUTH2)) -> {
-                int balance = 0;
-                if (!txtBalance.getText().isBlank()) {
-                    balance = Integer.parseInt(txtBalance.getText());
-                }
-                byte sector = Byte.parseByte(txtSector.getText());
-                byte block = Byte.parseByte(cbxBlock.getSelectedItem().toString());
-                int modification = Integer.parseInt(txtModification.getText());
-                switch (commandsProcessor) {
-                    case PROCESS.SET_BALANCE_MESSAGE -> {
-                        addCommand(new ER302Driver.CommandStruct(6, "Init balance ("+txtSector.getText()+"/"+cbxBlock.getSelectedItem().toString()+")", initBalance(sector, block, balance)));
+                try {
+                    int balance = Integer.parseInt(txtBalance.getText());
+                    byte sector = Byte.parseByte(txtSector.getText());
+                    byte block = Byte.parseByte(cbxBlock.getSelectedItem().toString());
+                    int modification = Integer.parseInt(txtModification.getText());
+                    switch (commandsProcessor) {
+                        case PROCESS.SET_BALANCE_MESSAGE -> {
+                            addCommand(new ER302Driver.CommandStruct(6, "Init balance ("+txtSector.getText()+"/"+cbxBlock.getSelectedItem().toString()+")", initBalance(sector, block, balance)));
+                        }
+                        case PROCESS.GET_BALANCE_MESSAGE -> {
+                            addCommand(new ER302Driver.CommandStruct(8, "Read balance ("+txtSector.getText()+"/"+cbxBlock.getSelectedItem().toString()+")", readBalance(sector, block)));
+                        }
+                        case PROCESS.INC_BALANCE_MESSAGE -> {
+                            addCommand(new ER302Driver.CommandStruct(10, "Inc balance ("+txtSector.getText()+"/"+cbxBlock.getSelectedItem().toString()+")", incBalance(sector, block, modification)));
+                        }
+                        case PROCESS.DEC_BALANCE_MESSAGE -> {
+                            addCommand(new ER302Driver.CommandStruct(12, "Dec balance ("+txtSector.getText()+"/"+cbxBlock.getSelectedItem().toString()+")", decBalance(sector, block, modification)));
+                        }
                     }
-                    case PROCESS.GET_BALANCE_MESSAGE -> {
-                        addCommand(new ER302Driver.CommandStruct(8, "Read balance ("+txtSector.getText()+"/"+cbxBlock.getSelectedItem().toString()+")", readBalance(sector, block)));
-                    }
-                    case PROCESS.INC_BALANCE_MESSAGE -> {
-                        addCommand(new ER302Driver.CommandStruct(10, "Inc balance ("+txtSector.getText()+"/"+cbxBlock.getSelectedItem().toString()+")", incBalance(sector, block, modification)));
-                    }
-                    case PROCESS.DEC_BALANCE_MESSAGE -> {
-                        addCommand(new ER302Driver.CommandStruct(12, "Dec balance ("+txtSector.getText()+"/"+cbxBlock.getSelectedItem().toString()+")", decBalance(sector, block, modification)));
-                    }
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(null, "Nem megengedett szám formátum!", "Hiba", JOptionPane.ERROR_MESSAGE);
+                    System.err.println(ex.getMessage());
                 }
             }         
             case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_INITVAL)) -> {
@@ -1195,6 +1198,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                     dialog.serialPortList.addItem(portNames[i]);
                 }
                 dialog.serialPortList.addItem("");
+                dialog.setLocationRelativeTo(null);
                 dialog.setVisible(true);
             }
         });
