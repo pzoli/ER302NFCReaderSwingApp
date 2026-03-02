@@ -806,8 +806,6 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                     byte[] command = mifareSelect(cardSerialNo);
                     log("Select command:" + ER302Driver.byteArrayToHexString(command));
                     addCommand(new ER302Driver.CommandStruct(4, "MifareSelect", command));
-                } else if (Arrays.equals(typeBytes, ER302Driver.TYPE_MIFARE_UL)) {
-                    log("CardType: MiFARE UltraLight");
                 }
             }
             case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_REQUEST)) -> {
@@ -823,7 +821,10 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                 }
             }
             case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_AUTH2)) -> {
-                int balance = Integer.parseInt(txtBalance.getText());
+                int balance = 0;
+                if (!txtBalance.getText().isBlank()) {
+                    balance = Integer.parseInt(txtBalance.getText());
+                }
                 byte sector = Byte.parseByte(txtSector.getText());
                 byte block = Byte.parseByte(cbxBlock.getSelectedItem().toString());
                 int modification = Integer.parseInt(txtModification.getText());
