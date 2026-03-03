@@ -995,7 +995,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                     log("Select error: " + res.error);
                 }
             }
-            case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_AUTH2)) -> {
+            case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_AUTH2)) -> { //REAUTH NOT NEEDED BEFORE EVERY READ/WRITE
                 switch (state) {
                     case 0 ->
                         addCommand(new ER302Driver.CommandStruct(6, "Read block (" + txtKeyChangeSector.getText() + "/3)", readBlock(Byte.parseByte(txtKeyChangeSector.getText()), (byte) 3)));
@@ -1738,7 +1738,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                 log("UL write return code: " + res.error);
                 addCommand(new ER302Driver.CommandStruct(6, "Read UL page (8)", readULPage((byte) 8)));
             }
-            case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_AUTH2)) -> {
+            case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_AUTH2)) -> { //REAUTH NOT NEEDED BEFORE EVERY READ/WRITE
                 switch (state) {
                     case 0 ->
                         addCommand(new ER302Driver.CommandStruct(6, "Init balance (5/1)", initBalance((byte) 5, (byte) 1, 10)));
@@ -1768,14 +1768,17 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                 }
             }
             case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_INITVAL)) -> {
+                //REAUTH NOT NEEDED BEFORE EVERY READ/WRITE
                 addCommand(new ER302Driver.CommandStruct(7, "Auth2", auth2((byte) 5, txtKeyString.getText().trim(), rbtKeyA.isSelected())));
                 state++;
             }
             case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_INCREMENT)) -> {
+                //REAUTH NOT NEEDED BEFORE EVERY READ/WRITE
                 addCommand(new ER302Driver.CommandStruct(7 + (2 * state), "Auth2", auth2((byte) 5, txtKeyString.getText().trim(), rbtKeyA.isSelected())));
                 state++;
             }
             case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_DECREMENT)) -> {
+                //REAUTH NOT NEEDED BEFORE EVERY READ/WRITE
                 addCommand(new ER302Driver.CommandStruct(7 + (2 * state), "Auth2", auth2((byte) 5, txtKeyString.getText().trim(), rbtKeyA.isSelected())));
                 state++;
             }
@@ -1786,6 +1789,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                 } catch (IndexOutOfBoundsException ex) {
                     System.err.print(ex.getMessage());
                 }
+                //REAUTH NOT NEEDED BEFORE EVERY READ/WRITE
                 addCommand(new ER302Driver.CommandStruct(7 + (2 * state), "Auth", auth2((byte) 5, txtKeyString.getText().trim(), rbtKeyA.isSelected())));
                 state++;
             }
@@ -1793,12 +1797,13 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                 if (Arrays.equals(typeBytes, ER302Driver.TYPE_MIFARE_UL)) {
                     log("UL page (8) content: " + ER302Driver.byteArrayToHexString(Arrays.copyOfRange(res.data, 0, 4)));
                     addCommand(new ER302Driver.CommandStruct(6, "Halt", cmdHltA()));
-                } else {
+                } else { //REAUTH NOT NEEDED BEFORE EVERY READ/WRITE
                     addCommand(new ER302Driver.CommandStruct(7 + (2 * state), "Auth", auth2((byte) 5, txtKeyString.getText().trim(), rbtKeyA.isSelected())));
                     state++;
                 }
             }
             case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_WRITE_BLOCK)) -> {
+                //REAUTH NOT NEEDED BEFORE EVERY READ/WRITE
                 addCommand(new ER302Driver.CommandStruct(7 + (2 * state), "Auth", auth2((byte) 5, txtKeyString.getText().trim(), rbtKeyA.isSelected())));
                 state++;
             }
