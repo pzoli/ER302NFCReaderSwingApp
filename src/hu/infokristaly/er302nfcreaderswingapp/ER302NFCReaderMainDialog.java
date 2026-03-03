@@ -1001,13 +1001,13 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                         addCommand(new ER302Driver.CommandStruct(6, "Read block (" + txtKeyChangeSector.getText() + "/3)", readBlock(Byte.parseByte(txtKeyChangeSector.getText()), (byte) 3)));
                     case 1 -> {
                         byte[] newKeys = ER302Driver.hexStringToByteArray(txtNewSectorPassword.getText());
-                        byte offset = 0;
-                        if (!rbtNewKeyA.isSelected()) {
-                            offset = 10;
-                        }
                         byte[] accessBits = ER302Driver.hexStringToByteArray(txtAccessBits.getText());
                         for(byte i = 0; i < accessBits.length; i++) {
                             keyBlock[6 + i] = accessBits[i];
+                        }
+                        byte offset = 0;
+                        if (!rbtNewKeyA.isSelected()) {
+                            offset = 10;
                         }
                         for (byte i = 0; i < newKeys.length; i++) {
                             keyBlock[offset + i] = newKeys[i];
