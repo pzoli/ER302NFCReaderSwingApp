@@ -49,7 +49,9 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     }
 
     private boolean checkPasswordFormat(String password) {
-        if (password.length() != 12) return false;
+        if (password.length() != 12) {
+            return false;
+        }
         try {
             ER302Driver.hexStringToByteArray(password);
         } catch (Exception e) {
@@ -72,8 +74,9 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     };
 
     private enum PROCESS {
-        MESSAGE_SEQUENCE, SINGLE_MESSAGE, URL_MESSAGE, TEXT_MESSAGE, VCARD_MESSAGE, 
-        SET_BALANCE_MESSAGE,GET_BALANCE_MESSAGE,INC_BALANCE_MESSAGE,DEC_BALANCE_MESSAGE
+        MESSAGE_SEQUENCE, SINGLE_MESSAGE, URL_MESSAGE, TEXT_MESSAGE, VCARD_MESSAGE,
+        SET_BALANCE_MESSAGE, GET_BALANCE_MESSAGE, INC_BALANCE_MESSAGE, DEC_BALANCE_MESSAGE,
+        SETKEY_MESSAGE
     };
 
     private ER302Driver.CommandStruct lastCommand;
@@ -84,6 +87,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
 
     private byte[] typeBytes;
     private byte[] cardSerialNo;
+    private byte[] keyBlock;
 
     private PROCESS commandsProcessor = PROCESS.MESSAGE_SEQUENCE;
 
@@ -252,8 +256,17 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         return result;
     }
 
-    private byte[] writeBlock(byte sector, byte block, byte[] dataBlock) {
+    private byte[] writeFourBytesToBlock(byte sector, byte block, byte[] dataBlock) {
         ByteBuffer bb = ByteBuffer.allocate(5);
+        bb.put(((byte) (sector * 4 + block)));
+        bb.put(dataBlock);
+        byte[] data = bb.array();
+        byte[] result = buildCommand(ER302Driver.CMD_MIFARE_WRITE_BLOCK, data);
+        return result;
+    }
+
+    private byte[] writeFullBlock(byte sector, byte block, byte[] dataBlock) {
+        ByteBuffer bb = ByteBuffer.allocate(17);
         bb.put(((byte) (sector * 4 + block)));
         bb.put(dataBlock);
         byte[] data = bb.array();
@@ -292,6 +305,8 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
 
         buttonGroup1 = new javax.swing.ButtonGroup();
         buttonGroup2 = new javax.swing.ButtonGroup();
+        buttonGroup3 = new javax.swing.ButtonGroup();
+        buttonGroup4 = new javax.swing.ButtonGroup();
         jLabel2 = new javax.swing.JLabel();
         serialPortList = new javax.swing.JComboBox<>();
         connectButton = new javax.swing.JButton();
@@ -313,7 +328,6 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         btnEncode = new javax.swing.JButton();
         btnBeep = new javax.swing.JButton();
         btnSendMessageSequence = new javax.swing.JButton();
-        btnClear = new javax.swing.JButton();
         jLabel13 = new javax.swing.JLabel();
         txtKeyString = new javax.swing.JTextField();
         rbtKeyA = new javax.swing.JRadioButton();
@@ -357,6 +371,19 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         cbxBlock = new javax.swing.JComboBox<>();
         rbtSectorKeyA = new javax.swing.JRadioButton();
         rbtSectorKeyB = new javax.swing.JRadioButton();
+        jPanel5 = new javax.swing.JPanel();
+        txtOriginSectorPassword = new javax.swing.JTextField();
+        jLabel19 = new javax.swing.JLabel();
+        rbtOriginKeyA = new javax.swing.JRadioButton();
+        rbtOriginKeyB = new javax.swing.JRadioButton();
+        jLabel20 = new javax.swing.JLabel();
+        txtNewSectorPassword = new javax.swing.JTextField();
+        btnSaveSectorKey = new javax.swing.JButton();
+        rbtNewKeyA = new javax.swing.JRadioButton();
+        rbtNewKeyB = new javax.swing.JRadioButton();
+        txtKeyChangeSector = new javax.swing.JTextField();
+        jLabel21 = new javax.swing.JLabel();
+        btnClear = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -370,7 +397,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         logArea.setRows(5);
         jScrollPane1.setViewportView(logArea);
 
-        jLabel6.setText("v0.5");
+        jLabel6.setText("v0.6");
 
         jLabel1.setText("Hexa String:");
 
@@ -394,9 +421,6 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
 
         btnSendMessageSequence.setText("Send test message sequence");
         btnSendMessageSequence.addActionListener(this::btnSendMessageSequenceActionPerformed);
-
-        btnClear.setText("Clear");
-        btnClear.addActionListener(this::btnClearActionPerformed);
 
         jLabel13.setText("Password:");
 
@@ -430,7 +454,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                             .addComponent(txtHexString, javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(btnSendMessageSequence, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(txtCmd, javax.swing.GroupLayout.DEFAULT_SIZE, 117, Short.MAX_VALUE)
+                                .addComponent(txtCmd, javax.swing.GroupLayout.DEFAULT_SIZE, 152, Short.MAX_VALUE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jLabel4)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -439,7 +463,6 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(btnDecode, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(btnSendSingleMessage, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(btnClear, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(btnEncode, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -478,9 +501,8 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                 .addComponent(rbtKeyA)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(rbtKeyB)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 29, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 33, Short.MAX_VALUE)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnClear)
                     .addComponent(btnSendMessageSequence)
                     .addComponent(btnBeep))
                 .addGap(14, 14, 14))
@@ -676,12 +698,102 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         buttonGroup2.add(rbtSectorKeyB);
         rbtSectorKeyB.setText("KeyB");
 
+        jPanel5.setBorder(javax.swing.BorderFactory.createTitledBorder("Key change"));
+
+        txtOriginSectorPassword.setText("FFFFFFFFFFFF");
+
+        jLabel19.setText("Origin Key:");
+
+        buttonGroup3.add(rbtOriginKeyA);
+        rbtOriginKeyA.setText("KeyA");
+
+        buttonGroup3.add(rbtOriginKeyB);
+        rbtOriginKeyB.setSelected(true);
+        rbtOriginKeyB.setText("KeyB");
+
+        jLabel20.setText("New Key:");
+
+        txtNewSectorPassword.setText("A1A2A3A4A5A6");
+
+        btnSaveSectorKey.setText("Save");
+        btnSaveSectorKey.addActionListener(this::btnSaveSectorKeyActionPerformed);
+
+        buttonGroup4.add(rbtNewKeyA);
+        rbtNewKeyA.setSelected(true);
+        rbtNewKeyA.setText("KeyA");
+
+        buttonGroup4.add(rbtNewKeyB);
+        rbtNewKeyB.setText("KeyB");
+
+        txtKeyChangeSector.setText("5");
+
+        jLabel21.setText("Sector:");
+
+        javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
+        jPanel5.setLayout(jPanel5Layout);
+        jPanel5Layout.setHorizontalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel5Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jLabel19)
+                    .addComponent(jLabel21)
+                    .addComponent(jLabel20))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addComponent(txtNewSectorPassword)
+                        .addComponent(txtOriginSectorPassword))
+                    .addComponent(txtKeyChangeSector, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel5Layout.createSequentialGroup()
+                        .addComponent(rbtOriginKeyA, javax.swing.GroupLayout.PREFERRED_SIZE, 65, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(rbtOriginKeyB, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(btnSaveSectorKey)
+                    .addGroup(jPanel5Layout.createSequentialGroup()
+                        .addComponent(rbtNewKeyA, javax.swing.GroupLayout.PREFERRED_SIZE, 65, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(rbtNewKeyB, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel5Layout.setVerticalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel5Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtOriginSectorPassword, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel19)
+                    .addComponent(rbtOriginKeyA)
+                    .addComponent(rbtOriginKeyB))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtNewSectorPassword, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel20)
+                    .addComponent(rbtNewKeyA)
+                    .addComponent(rbtNewKeyB))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel5Layout.createSequentialGroup()
+                        .addGap(0, 17, Short.MAX_VALUE)
+                        .addComponent(btnSaveSectorKey))
+                    .addGroup(jPanel5Layout.createSequentialGroup()
+                        .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel21)
+                            .addComponent(txtKeyChangeSector, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(0, 0, Short.MAX_VALUE))))
+        );
+
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
         jPanel4Layout.setHorizontalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
-                .addContainerGap(87, Short.MAX_VALUE)
+                .addGap(0, 115, Short.MAX_VALUE)
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel4Layout.createSequentialGroup()
                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
@@ -723,12 +835,12 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                                 .addComponent(rbtSectorKeyA)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(rbtSectorKeyB)))
-                .addGap(76, 76, 76))
+                .addGap(82, 82, 82))
         );
         jPanel4Layout.setVerticalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel4Layout.createSequentialGroup()
-                .addGap(67, 67, 67)
+                .addContainerGap()
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel14)
                     .addComponent(txtSector, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -752,10 +864,15 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                     .addComponent(jLabel16)
                     .addComponent(btnInc)
                     .addComponent(btnDec))
-                .addContainerGap(80, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         jTabbedPane.addTab("Micropayment", jPanel4);
+
+        btnClear.setText("Clear");
+        btnClear.addActionListener(this::btnClearActionPerformed);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -764,6 +881,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGap(6, 6, 6)
                         .addComponent(jLabel2)
@@ -771,9 +889,9 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                         .addComponent(serialPortList, javax.swing.GroupLayout.PREFERRED_SIZE, 178, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(connectButton, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE))
+                        .addGap(105, 105, 105)
+                        .addComponent(btnClear))
                     .addComponent(jTabbedPane)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)))
@@ -783,11 +901,11 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(serialPortList, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jLabel2)
-                        .addComponent(connectButton, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2)
+                    .addComponent(btnClear)
+                    .addComponent(connectButton, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(serialPortList, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 219, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -808,6 +926,75 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         serialPort.writeBytes(mifareAnticolision());
         Thread.sleep(Duration.ofMillis(100));
         serialPort.writeBytes(mifareULSelect());
+    }
+
+    private void processPasswordKeyChange(ReceivedStruct result) {
+        if (lastCommand == null) {
+            return;
+        }
+        log(lastCommand.id + ". " + lastCommand.descrition + " (data):" + ER302Driver.byteArrayToHexString(result.data));
+        switch (result) {
+            case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_READ_FW_VERSION)) -> {
+                log("Firmware versino:" + new String(res.data));
+            }
+            case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_ANTICOLISION)) -> {
+                cardSerialNo = res.data;
+                if (Arrays.equals(typeBytes, ER302Driver.TYPE_MIFARE_1K)) {
+                    log("CardType: MiFARE Classic 1K");
+                    byte[] command = mifareSelect(cardSerialNo);
+                    log("Select command:" + ER302Driver.byteArrayToHexString(command));
+                    addCommand(new ER302Driver.CommandStruct(4, "MifareSelect", command));
+                }
+            }
+            case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_REQUEST)) -> {
+                typeBytes = res.data;
+                addCommand(new ER302Driver.CommandStruct(3, "Mifare anticolision", mifareAnticolision()));
+            }
+            case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_SELECT)) -> {
+                byte sector = Byte.parseByte(txtSector.getText());
+                if (res.error == 0x00) {
+                    addCommand(new ER302Driver.CommandStruct(5, "Auth2", auth2(sector, txtOriginSectorPassword.getText().trim(), rbtOriginKeyA.isSelected())));
+                } else {
+                    log("Select error: " + res.error);
+                }
+            }
+            case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_AUTH2)) -> {
+                switch (state) {
+                    case 0 ->
+                        addCommand(new ER302Driver.CommandStruct(6, "Read block (" + txtKeyChangeSector.getText() + "/3)", readBlock(Byte.parseByte(txtKeyChangeSector.getText()), (byte) 3)));
+                    case 1 -> {
+                        byte[] newKeys = ER302Driver.hexStringToByteArray(txtNewSectorPassword.getText());
+                        byte offset = 0;
+                        if (!rbtNewKeyA.isSelected()) {
+                            offset = 10;
+                        }
+                        
+                        for(byte i = 0; i < newKeys.length; i++) {
+                            keyBlock[offset+i] = newKeys[i];
+                        }
+                        
+                        addCommand(new ER302Driver.CommandStruct(8, "Write block (" + txtKeyChangeSector.getText() + "/3)", writeFullBlock(Byte.parseByte(txtKeyChangeSector.getText()), (byte) 3, keyBlock)));
+                    }
+                    default ->
+                        log("Not handled message");
+                }
+            }
+            case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_READ_BLOCK) && res.error == 0) -> {
+                if (Arrays.equals(typeBytes, ER302Driver.TYPE_MIFARE_1K)) {
+                    keyBlock = res.data;
+                    byte sector = Byte.parseByte(txtSector.getText());
+                    addCommand(new ER302Driver.CommandStruct(7, "Auth", auth2(sector, txtOriginSectorPassword.getText().trim(), rbtOriginKeyA.isSelected())));
+                    state++;
+                }
+            }
+            case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_WRITE_BLOCK)) -> {
+                addCommand(new ER302Driver.CommandStruct(9, "Halt", cmdHltA()));
+                state++;
+            }
+            default -> {
+                log("Unhandled command: " + ER302Driver.byteArrayToHexString(result.cmd));
+            }
+        }
     }
 
     private void processBalanceCommads(ReceivedStruct result) {
@@ -848,29 +1035,29 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                     int modification = Integer.parseInt(txtModification.getText());
                     switch (commandsProcessor) {
                         case PROCESS.SET_BALANCE_MESSAGE -> {
-                            addCommand(new ER302Driver.CommandStruct(6, "Init balance ("+txtSector.getText()+"/"+cbxBlock.getSelectedItem().toString()+")", initBalance(sector, block, balance)));
+                            addCommand(new ER302Driver.CommandStruct(6, "Init balance (" + txtSector.getText() + "/" + cbxBlock.getSelectedItem().toString() + ")", initBalance(sector, block, balance)));
                         }
                         case PROCESS.GET_BALANCE_MESSAGE -> {
-                            addCommand(new ER302Driver.CommandStruct(8, "Read balance ("+txtSector.getText()+"/"+cbxBlock.getSelectedItem().toString()+")", readBalance(sector, block)));
+                            addCommand(new ER302Driver.CommandStruct(8, "Read balance (" + txtSector.getText() + "/" + cbxBlock.getSelectedItem().toString() + ")", readBalance(sector, block)));
                         }
                         case PROCESS.INC_BALANCE_MESSAGE -> {
-                            addCommand(new ER302Driver.CommandStruct(10, "Inc balance ("+txtSector.getText()+"/"+cbxBlock.getSelectedItem().toString()+")", incBalance(sector, block, modification)));
+                            addCommand(new ER302Driver.CommandStruct(10, "Inc balance (" + txtSector.getText() + "/" + cbxBlock.getSelectedItem().toString() + ")", incBalance(sector, block, modification)));
                         }
                         case PROCESS.DEC_BALANCE_MESSAGE -> {
-                            addCommand(new ER302Driver.CommandStruct(12, "Dec balance ("+txtSector.getText()+"/"+cbxBlock.getSelectedItem().toString()+")", decBalance(sector, block, modification)));
+                            addCommand(new ER302Driver.CommandStruct(12, "Dec balance (" + txtSector.getText() + "/" + cbxBlock.getSelectedItem().toString() + ")", decBalance(sector, block, modification)));
                         }
                     }
                 } catch (NumberFormatException ex) {
                     JOptionPane.showMessageDialog(null, "Not a valid number format!", "Error", JOptionPane.ERROR_MESSAGE);
                     System.err.println(ex.getMessage());
                 }
-            }         
+            }
             case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_INITVAL)) -> {
                 log("Initialized:" + res.error);
                 addCommand(new ER302Driver.CommandStruct(14, "Halt", cmdHltA()));
             }
             case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_INCREMENT)) -> {
-                log("Increment:" + res.error);                
+                log("Increment:" + res.error);
                 addCommand(new ER302Driver.CommandStruct(14, "Halt", cmdHltA()));
             }
             case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_DECREMENT)) -> {
@@ -887,11 +1074,10 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                 }
                 addCommand(new ER302Driver.CommandStruct(14, "Halt", cmdHltA()));
             }
-
             default -> {
                 log("Unhandled command: " + ER302Driver.byteArrayToHexString(result.cmd));
             }
-        }        
+        }
     }
 
     private void connectButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connectButtonActionPerformed
@@ -1076,7 +1262,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         if (serialPort != null) {
             logArea.setText("");
             if (!checkPasswordFormat(txtSectorPassword.getText().trim())) {
-                JOptionPane.showMessageDialog(null, "Not a valid password format!", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(null, "Not a valid password key format!", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             if (!checkNumberInput(txtBalance.getText())) {
@@ -1101,7 +1287,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         if (serialPort != null) {
             logArea.setText("");
             if (!checkPasswordFormat(txtSectorPassword.getText().trim())) {
-                JOptionPane.showMessageDialog(null, "Not a valid password format!", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(null, "Not a valid password key format!", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             if (!checkNumberInput(txtBalance.getText())) {
@@ -1118,7 +1304,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                 Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
                 log(ex.getMessage());
             }
-        }        
+        }
     }//GEN-LAST:event_btnBalanceGetActionPerformed
 
     private void btnIncActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnIncActionPerformed
@@ -1126,7 +1312,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         if (serialPort != null) {
             logArea.setText("");
             if (!checkPasswordFormat(txtSectorPassword.getText().trim())) {
-                JOptionPane.showMessageDialog(null, "Not a valid password format!", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(null, "Not a valid password key format!", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             if (!checkNumberInput(txtBalance.getText())) {
@@ -1143,7 +1329,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                 Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
                 log(ex.getMessage());
             }
-        }        
+        }
     }//GEN-LAST:event_btnIncActionPerformed
 
     private void btnDecActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDecActionPerformed
@@ -1151,7 +1337,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         if (serialPort != null) {
             logArea.setText("");
             if (!checkPasswordFormat(txtSectorPassword.getText().trim())) {
-                JOptionPane.showMessageDialog(null, "Not a valid password format!", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(null, "Not a valid password key format!", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             if (!checkNumberInput(txtBalance.getText())) {
@@ -1168,8 +1354,30 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                 Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
                 log(ex.getMessage());
             }
-        }        
+        }
     }//GEN-LAST:event_btnDecActionPerformed
+
+    private void btnSaveSectorKeyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveSectorKeyActionPerformed
+        commandsProcessor = PROCESS.SETKEY_MESSAGE;
+        state = 0;
+        if (serialPort != null) {
+            logArea.setText("");
+            if (!checkPasswordFormat(txtOriginSectorPassword.getText().trim())) {
+                JOptionPane.showMessageDialog(null, "Not a valid origin password key format!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (!checkPasswordFormat(txtNewSectorPassword.getText().trim())) {
+                JOptionPane.showMessageDialog(null, "Not a valid new password key format!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            try {
+                sendInitialCommands();
+            } catch (SerialPortException ex) {
+                Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
+                log(ex.getMessage());
+            }
+        }
+    }//GEN-LAST:event_btnSaveSectorKeyActionPerformed
 
     public void writeVCardToTag(String vCardName, String vCardPhone, String vCardEmail) throws InterruptedException, SerialPortException {
         commandsProcessor = PROCESS.SINGLE_MESSAGE;
@@ -1270,6 +1478,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                 }
                 dialog.serialPortList.addItem("");
                 dialog.setLocationRelativeTo(null);
+                dialog.setTitle("ER302 NFC reader App");
                 dialog.setVisible(true);
             }
         });
@@ -1486,7 +1695,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                         addCommand(new ER302Driver.CommandStruct(18, "Read block (5/1)", readBlock((byte) 5, (byte) 0)));
                     case 7 -> {
                         byte[] byteBlock = {0x00, 0x01, 0x02, 0x03};
-                        addCommand(new ER302Driver.CommandStruct(20, "Write block (7/0)", writeBlock((byte) 5, (byte) 0, byteBlock)));
+                        addCommand(new ER302Driver.CommandStruct(20, "Write block (7/0)", writeFourBytesToBlock((byte) 5, (byte) 0, byteBlock)));
                     }
                     case 8 ->
                         addCommand(new ER302Driver.CommandStruct(22, "Read block (7/0)", readBlock((byte) 5, (byte) 0)));
@@ -1578,6 +1787,9 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                             case PROCESS.DEC_BALANCE_MESSAGE:
                                 processBalanceCommads(result);
                                 break;
+                            case PROCESS.SETKEY_MESSAGE:
+                                processPasswordKeyChange(result);
+                                break;
                             default:
                         }
                         if (result.length < buffer.length) {
@@ -1623,6 +1835,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     private javax.swing.JButton btnDownloadURL;
     private javax.swing.JButton btnEncode;
     private javax.swing.JButton btnInc;
+    private javax.swing.JButton btnSaveSectorKey;
     private javax.swing.JButton btnSendMessageSequence;
     private javax.swing.JButton btnSendSingleMessage;
     private javax.swing.JButton btnUploadText;
@@ -1631,6 +1844,8 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     private javax.swing.JButton btnVCardDownload;
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.ButtonGroup buttonGroup2;
+    private javax.swing.ButtonGroup buttonGroup3;
+    private javax.swing.ButtonGroup buttonGroup4;
     private javax.swing.JComboBox<String> cbxBlock;
     private javax.swing.JButton connectButton;
     private javax.swing.JLabel jLabel1;
@@ -1643,7 +1858,10 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     private javax.swing.JLabel jLabel16;
     private javax.swing.JLabel jLabel17;
     private javax.swing.JLabel jLabel18;
+    private javax.swing.JLabel jLabel19;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel20;
+    private javax.swing.JLabel jLabel21;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
@@ -1655,12 +1873,17 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
+    private javax.swing.JPanel jPanel5;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTabbedPane jTabbedPane;
     private javax.swing.JLabel lblDecode;
     private javax.swing.JTextArea logArea;
     private javax.swing.JRadioButton rbtKeyA;
     private javax.swing.JRadioButton rbtKeyB;
+    private javax.swing.JRadioButton rbtNewKeyA;
+    private javax.swing.JRadioButton rbtNewKeyB;
+    private javax.swing.JRadioButton rbtOriginKeyA;
+    private javax.swing.JRadioButton rbtOriginKeyB;
     private javax.swing.JRadioButton rbtSectorKeyA;
     private javax.swing.JRadioButton rbtSectorKeyB;
     private javax.swing.JComboBox<String> serialPortList;
@@ -1668,8 +1891,11 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     private javax.swing.JTextField txtCmd;
     private javax.swing.JTextField txtDecode;
     private javax.swing.JTextField txtHexString;
+    private javax.swing.JTextField txtKeyChangeSector;
     private javax.swing.JTextField txtKeyString;
     private javax.swing.JTextField txtModification;
+    private javax.swing.JTextField txtNewSectorPassword;
+    private javax.swing.JTextField txtOriginSectorPassword;
     private javax.swing.JTextField txtParams;
     private javax.swing.JTextField txtSector;
     private javax.swing.JTextField txtSectorPassword;
