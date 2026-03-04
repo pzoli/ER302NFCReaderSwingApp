@@ -981,8 +981,8 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
             }
             case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_ANTICOLISION)) -> {
                 cardSerialNo = res.data;
-                if (Arrays.equals(typeBytes, ER302Driver.TYPE_MIFARE_1K)) {
-                    log("CardType: MiFARE Classic 1K");
+                if (Arrays.equals(typeBytes, ER302Driver.TYPE_MIFARE_1K) || Arrays.equals(typeBytes, ER302Driver.TYPE_MIFARE_4K)) {
+                    log("CardType: MiFARE Classic");
                     byte[] command = mifareSelect(cardSerialNo);
                     log("Select command:" + ER302Driver.byteArrayToHexString(command));
                     addCommand(new ER302Driver.CommandStruct(4, "MifareSelect", command));
@@ -1025,7 +1025,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                 }
             }
             case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_READ_BLOCK) && res.error == 0) -> {
-                if (Arrays.equals(typeBytes, ER302Driver.TYPE_MIFARE_1K)) {
+                if (Arrays.equals(typeBytes, ER302Driver.TYPE_MIFARE_1K) || Arrays.equals(typeBytes, ER302Driver.TYPE_MIFARE_4K)) {
                     keyBlock = res.data;
                     byte sector = Byte.parseByte(txtSector.getText());
                     addCommand(new ER302Driver.CommandStruct(7, "Auth", auth2(sector, txtOriginSectorPassword.getText().trim(), rbtOriginKeyA.isSelected())));
@@ -1053,8 +1053,8 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
             }
             case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_ANTICOLISION)) -> {
                 cardSerialNo = res.data;
-                if (Arrays.equals(typeBytes, ER302Driver.TYPE_MIFARE_1K)) {
-                    log("CardType: MiFARE Classic 1K");
+                if (Arrays.equals(typeBytes, ER302Driver.TYPE_MIFARE_1K) || Arrays.equals(typeBytes, ER302Driver.TYPE_MIFARE_4K)) {
+                    log("CardType: MiFARE Classic");
                     byte[] command = mifareSelect(cardSerialNo);
                     log("Select command:" + ER302Driver.byteArrayToHexString(command));
                     addCommand(new ER302Driver.CommandStruct(4, "MifareSelect", command));
@@ -1714,8 +1714,8 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
             }
             case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_ANTICOLISION)) -> {
                 cardSerialNo = res.data;
-                if (Arrays.equals(typeBytes, ER302Driver.TYPE_MIFARE_1K)) {
-                    log("CardType: MiFARE Classic 1K");
+                if (Arrays.equals(typeBytes, ER302Driver.TYPE_MIFARE_1K) || Arrays.equals(typeBytes, ER302Driver.TYPE_MIFARE_4K)) {
+                    log("CardType: MiFARE Classic");
                     byte[] command = mifareSelect(cardSerialNo);
                     log("Select command:" + ER302Driver.byteArrayToHexString(command));
                     addCommand(new ER302Driver.CommandStruct(4, "MifareSelect", command));
@@ -1831,8 +1831,8 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
             }
             case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_ANTICOLISION)) -> {
                 cardSerialNo = res.data;
-                if (Arrays.equals(typeBytes, ER302Driver.TYPE_MIFARE_1K)) {
-                    log("CardType: MiFARE Classic 1K");
+                if (Arrays.equals(typeBytes, ER302Driver.TYPE_MIFARE_1K) || Arrays.equals(typeBytes, ER302Driver.TYPE_MIFARE_4K)) {
+                    log("CardType: MiFARE Classic");
                     byte[] command = mifareSelect(cardSerialNo);
                     log("Select command:" + ER302Driver.byteArrayToHexString(command));
                     addCommand(new ER302Driver.CommandStruct(4, "MifareSelect", command));
@@ -1859,7 +1859,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                 }
             }
             case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_READ_BLOCK) && res.error == 0) -> {
-                if (Arrays.equals(typeBytes, ER302Driver.TYPE_MIFARE_1K)) {
+                if (Arrays.equals(typeBytes, ER302Driver.TYPE_MIFARE_1K) || Arrays.equals(typeBytes, ER302Driver.TYPE_MIFARE_4K)) {
                     keyBlock = res.data;
                     String sAccessBits = ER302Driver.byteArrayToHexString(keyBlock);
                     txtAccessBits.setText(sAccessBits.substring(12, 20));
