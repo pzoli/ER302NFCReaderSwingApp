@@ -1678,20 +1678,20 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                 addCommand(new ER302Driver.CommandStruct(5, "Mifare read Ultralight", mifareULRead(ulReadPageIdx)));
             }
             case ReceivedStruct res when (Arrays.equals(res.cmd, ER302Driver.CMD_MIFARE_READ_BLOCK)) -> {
-                boolean foundURL = false;
+                boolean foundVCard = false;
                 byte[] actualPageData = Arrays.copyOfRange(res.data, 0, 4);
                 String pageHexData = ER302Driver.byteArrayToHexString(actualPageData);
                 log("Actual page (" + ulReadPageIdx + ") bytes: " + pageHexData);
                 for (byte b : actualPageData) {
                     if ((b & 0xFF) == 0xFE) {
-                        logArea.setText(ER302Driver.decodeNdefVCard(rawData.toByteArray()));
-                        foundURL = true;
+                        logArea.setText(ER302Driver.decodeNdefVCard(rawData.toByteArray())+"\n");
+                        foundVCard = true;
                         break;
                     }
                     rawData.write(b);
                     ulReadIdx++;
                 }
-                if (!foundURL && ulReadPageIdx < 40) {
+                if (!foundVCard && ulReadPageIdx < 40) {
                     ulReadPageIdx += 1;
                     addCommand(new ER302Driver.CommandStruct(5, "Mifare read Ultralight", mifareULRead(ulReadPageIdx)));
                 }
