@@ -187,25 +187,19 @@ public class ER302Driver {
 
     public static String decodeNdefVCard(byte[] toByteArray) {
         try {
-            // 1. Keressük meg a "text/vcard" típusjelzőt
             String rawString = new String(toByteArray, Charset.forName("US-ASCII"));
             int typeIndex = rawString.indexOf("text/vcard");
 
-            if (typeIndex == -1) return "Nem található vCard rekord ezen a kártyán.";
+            if (typeIndex == -1) return "vCard record not found.";
 
-            // 2. A payload (a tényleges vCard szöveg) a típusjelző után kezdődik
-            // A MIME típusú NDEF rekordnál (0xD2) a fejléc: [Header][TypeLen][PayloadLen]
-            // Kiszámoljuk a kezdőpontot: typeIndex + "text/vcard".length()
             int vCardStartIndex = typeIndex + "text/vcard".length();
 
-            // 3. A maradék bájtokat UTF-8-ként értelmezzük
             byte[] vCardBytes = Arrays.copyOfRange(toByteArray, vCardStartIndex, toByteArray.length);
             String vCardContent = new String(vCardBytes, Charset.forName("UTF-8")).trim();
 
-            // Tisztítás: ha a végén ott maradtak vezérlő bájtok vagy a 0xFE, vágjuk le
-            return vCardContent; //.replaceAll("[^\\x20-\\x7E\\s]", ""); 
+            return vCardContent;
         } catch (Exception e) {
-            return "Hiba a vCard dekódolása közben: " + e.getMessage();
+            return "Error during vCard decoding: " + e.getMessage();
         }
     }
     
