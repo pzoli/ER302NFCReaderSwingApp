@@ -90,9 +90,9 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     }
 
     private enum PROCESS {
-        MESSAGE_SEQUENCE, SINGLE_MESSAGE, URL_MESSAGE, TEXT_MESSAGE, VCARD_MESSAGE,
+        SINGLE_MESSAGE, URL_MESSAGE, TEXT_MESSAGE, VCARD_MESSAGE,
         SET_BALANCE_MESSAGE, GET_BALANCE_MESSAGE, INC_BALANCE_MESSAGE, DEC_BALANCE_MESSAGE,
-        SETKEY_MESSAGE, GET_ACCESSBITS_MESSAGE
+        SETKEY_MESSAGE, GET_ACCESSBITS_MESSAGE, WRITE_VCARD_CLASSIC_MESSAGE
     };
 
     private ER302Driver.CommandStruct lastCommand;
@@ -105,7 +105,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     private byte[] cardSerialNo;
     private byte[] keyBlock;
 
-    private PROCESS commandsProcessor = PROCESS.MESSAGE_SEQUENCE;
+    private PROCESS commandsProcessor = PROCESS.SINGLE_MESSAGE;
 
     private Queue<ER302Driver.CommandStruct> commands = new LinkedList<ER302Driver.CommandStruct>();
 
@@ -630,14 +630,15 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                     .addComponent(jLabel25)
                     .addComponent(txtPhoneForClassic, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(rbtForClassicKeyA)
-                    .addComponent(rbtForClassicKeyB)
-                    .addComponent(jLabel26)
-                    .addComponent(txtActualKeyForClassic, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(btnUpload)
-                        .addComponent(btnDownload)))
+                        .addComponent(btnDownload))
+                    .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(rbtForClassicKeyA)
+                        .addComponent(rbtForClassicKeyB)
+                        .addComponent(jLabel26)
+                        .addComponent(txtActualKeyForClassic, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(0, 4, Short.MAX_VALUE))
         );
 
@@ -1194,21 +1195,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     }//GEN-LAST:event_btnClearActionPerformed
 
     private void btnSendMessageSequenceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSendMessageSequenceActionPerformed
-        commandsProcessor = PROCESS.MESSAGE_SEQUENCE;
-        if (serialPort != null) {
-            logArea.setText("");
-            if (!checkPasswordFormat(txtKeyString.getText().trim())) {
-                JOptionPane.showMessageDialog(null, "Not a valid password format!", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            state = 0;
-            try {
-                sendInitialCommands();
-            } catch (SerialPortException ex) {
-                Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
-                log(ex.getMessage());
-            }
-        }
+
     }//GEN-LAST:event_btnSendMessageSequenceActionPerformed
 
     private void btnBeepActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBeepActionPerformed
@@ -1440,6 +1427,14 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
             }
         }
     }
+
+    void add(int id, String description, byte[] cmd) {
+        addCommand(new ER302Driver.CommandStruct(id, description, cmd));
+    }   
+    
+    private void authenticate(int sector, String key, boolean useKeyA) {
+        add(4, "Auth sector " + sector, Commands.auth2((byte) sector, key, useKeyA));
+    }
     
     private void btnImportCSVFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnImportCSVFileActionPerformed
         importCSV((DefaultTableModel)tblPersons.getModel());
@@ -1459,7 +1454,86 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     }//GEN-LAST:event_btnDeletePersonActionPerformed
 
     private void btnUploadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUploadActionPerformed
+        commandsProcessor = PROCESS.WRITE_VCARD_CLASSIC_MESSAGE;
+        String key = txtActualKeyForClassic.getText();
+        boolean isKeyA = rbtForClassicKeyA.isSelected();
+        byte[] ndef = Commands.createNdefVCardMessage(txtNameForClassic.getText(), txtPhoneForClassic.getText(), txtEmailFroClassic.getText());
         
+        add(1, "MiFare Request", Commands.mifareRequest());
+        add(2, "MiFare Anticolision", Commands.mifareAnticolision());
+
+        // MAD (Sector 0) előkészítése
+        authenticate(0,key,isKeyA);
+        byte[] mad1 = ER302Driver.hexStringToByteArray("140103E103E103E103E103E103E103E1");
+        add(3, "Write MAD1 (S0 B1)", Commands.writeFullBlock((byte) 0, (byte) 1, mad1));
+
+        byte[] mad2 = ER302Driver.hexStringToByteArray("03E103E103E103E103E103E103E103E1");
+        add(3, "Write MAD2 (S0 B2)", Commands.writeFullBlock((byte) 0, (byte) 2, mad2));
+
+        // Sector 0 Trailer
+        byte[] madTrailer = {
+            (byte) 0xA0, (byte) 0xA1, (byte) 0xA2, (byte) 0xA3, (byte) 0xA4, (byte) 0xA5,
+            (byte) 0x78, (byte) 0x77, (byte) 0x88,
+            (byte) 0xC1,
+            (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF
+        };
+
+        byte[] madTrailerOthers = {
+            (byte) 0xD3, (byte) 0xF7, (byte) 0xD3, (byte) 0xF7, (byte) 0xD3, (byte) 0xF7,
+            (byte) 0x7F, (byte) 0x07, (byte) 0x88,
+            (byte) 0x40,
+            (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF
+        };
+
+        add(4, "Write MAD Trailer (S0 B3)", Commands.writeFullBlock((byte) 0, (byte) 3, madTrailer));
+
+        // NDEF írása a Sector 1-től kezdődően
+        byte[] remainingBytes = ndef;
+        int sector = 1;
+        int blockInSector = 0;
+        int offset = 0;
+
+        authenticate(sector,key,isKeyA);
+
+        while (offset < remainingBytes.length) {
+            int blocksPerSector = (sector < 32) ? 4 : 16;
+            int trailerBlock = blocksPerSector - 1;
+
+            if (blockInSector == trailerBlock) {
+                add(4, "Write MAD Trailer (S" + sector + " B" + trailerBlock + ")", 
+                    Commands.writeFullBlock((byte) sector, (byte) blockInSector, madTrailerOthers));
+                
+                sector++;
+                blockInSector = 0;
+                authenticate(sector,key,isKeyA);
+                continue;
+            }
+
+            // 16 bájtos blokk előkészítése
+            byte[] block = new byte[16];
+            int lengthToCopy = Math.min(16, remainingBytes.length - offset);
+            System.arraycopy(remainingBytes, offset, block, 0, lengthToCopy);
+            // A Java tömb alapértelmezetten 0-kkal van feltöltve, így a padding kész.
+
+            add(5, "Write S" + sector + " B" + blockInSector, 
+                Commands.writeFullBlock((byte) sector, (byte) blockInSector, block));
+            
+            // Biztonsági mentés: minden adatblokk után frissítjük a trailert (opcionális, de a Swift kódban benne van)
+            add(4, "Write MAD Trailer (S" + sector + " B" + trailerBlock + ")", 
+                Commands.writeFullBlock((byte) sector, (byte) (byte) trailerBlock, madTrailerOthers));
+
+            offset += lengthToCopy;
+            blockInSector++;
+        }
+
+        // Lezárás
+        add(6, "MiFare HltA", Commands.cmdHltA());
+        try {
+            serialPort.writeBytes(Commands.beep((byte)80));
+        } catch (SerialPortException ex) {
+            System.getLogger(ER302NFCReaderMainDialog.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+        }
+                
     }//GEN-LAST:event_btnUploadActionPerformed
 
     private void btnDownloadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDownloadActionPerformed

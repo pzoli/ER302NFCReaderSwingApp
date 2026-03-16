@@ -691,14 +691,16 @@
                           <Component id="txtPhoneForClassic" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="3" attributes="0">
-                          <Component id="rbtForClassicKeyA" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="rbtForClassicKeyB" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="jLabel26" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="txtActualKeyForClassic" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Group type="103" alignment="3" groupAlignment="3" attributes="0">
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Group type="103" alignment="0" groupAlignment="3" attributes="0">
                               <Component id="btnUpload" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="btnDownload" alignment="3" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <Group type="103" groupAlignment="3" attributes="0">
+                              <Component id="rbtForClassicKeyA" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="rbtForClassicKeyB" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="jLabel26" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="txtActualKeyForClassic" alignment="3" min="-2" max="-2" attributes="0"/>
                           </Group>
                       </Group>
                       <EmptySpace min="0" pref="4" max="32767" attributes="0"/>
