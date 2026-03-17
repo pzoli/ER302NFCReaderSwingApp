@@ -1586,7 +1586,6 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         Thread.sleep(Duration.ofMillis(100));
         byte[] dataToWrite = Commands.createNdefVCardMessage(vCardName, vCardPhone, vCardEmail);
 
-        // 3. 4-bájtos blokkokban írás az 5. laptól kezdve
         for (int i = 0; i < dataToWrite.length; i += 4) {
             byte[] chunk = new byte[4];
             int remaining = dataToWrite.length - i;
