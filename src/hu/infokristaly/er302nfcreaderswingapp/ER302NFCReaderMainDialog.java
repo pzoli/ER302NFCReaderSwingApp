@@ -129,7 +129,6 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                 if (res.error == 0 && !foundVCard && currentSector < 40) {
                     currentBlock += 1;
 
-                    // Trailer block (3) átugrása és szektorváltás
                     if (currentBlock == 3) {
                         currentBlock = 0;
                         currentSector += 1;
@@ -1489,7 +1488,6 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         add(1, "MiFare Request", Commands.mifareRequest());
         add(2, "MiFare Anticolision", Commands.mifareAnticolision());
 
-        // MAD (Sector 0) előkészítése
         authenticate(0,key,isKeyA);
         byte[] mad1 = ER302Driver.hexStringToByteArray("140103E103E103E103E103E103E103E1");
         add(3, "Write MAD1 (S0 B1)", Commands.writeFullBlock((byte) 0, (byte) 1, mad1));
@@ -1514,7 +1512,6 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
 
         add(4, "Write MAD Trailer (S0 B3)", Commands.writeFullBlock((byte) 0, (byte) 3, madTrailer));
 
-        // NDEF írása a Sector 1-től kezdődően
         byte[] remainingBytes = ndef;
         int sector = 1;
         int blockInSector = 0;
@@ -1536,16 +1533,13 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                 continue;
             }
 
-            // 16 bájtos blokk előkészítése
             byte[] block = new byte[16];
             int lengthToCopy = Math.min(16, remainingBytes.length - offset);
             System.arraycopy(remainingBytes, offset, block, 0, lengthToCopy);
-            // A Java tömb alapértelmezetten 0-kkal van feltöltve, így a padding kész.
 
             add(5, "Write S" + sector + " B" + blockInSector, 
                 Commands.writeFullBlock((byte) sector, (byte) blockInSector, block));
             
-            // Biztonsági mentés: minden adatblokk után frissítjük a trailert (opcionális, de a Swift kódban benne van)
             add(4, "Write MAD Trailer (S" + sector + " B" + trailerBlock + ")", 
                 Commands.writeFullBlock((byte) sector, (byte) (byte) trailerBlock, madTrailerOthers));
 
@@ -1553,7 +1547,6 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
             blockInSector++;
         }
 
-        // Lezárás
         add(6, "MiFare HltA", Commands.cmdHltA());
         try {
             byte[] beepMsg = Commands.beep((byte) 50);
@@ -1695,21 +1688,16 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                 });
                 
                 dialog.tblPersons.getModel().addTableModelListener(e -> {
-                    // Ellenőrizzük, hogy frissítés (UPDATE) történt-e
                     if (e.getType() == TableModelEvent.UPDATE && dialog.tblPersons.isEditing()) {
                         int row = e.getFirstRow();
                         int column = e.getColumn();
 
-                        // Megnézzük, hogy az éppen kiválasztott sort szerkesztették-e
                         int selectedRow = dialog.tblPersons.getSelectedRow();
 
-                        // Ha a szerkesztett sor az, amelyik ki van jelölve
                         if (row == selectedRow && row != -1) {
-                            // Adat lekérése a módosított cellából
                             Object newValue = dialog.tblPersons.getValueAt(row, column);
                             String valueStr = (newValue != null) ? newValue.toString() : "";
 
-                            // Frissítjük a megfelelő mezőt az oszlopindex alapján
                             switch (column) {
                                 case 0 -> dialog.txtNameForClassic.setText(valueStr);
                                 case 1 -> dialog.txtEmailFroClassic.setText(valueStr);
