@@ -8,7 +8,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -332,37 +335,56 @@ public class Commands {
     }
     
     public static byte[] createNdefVCardMessage(String name, String phone, String email) {
-        // 1. A vCard szöveg összeállítása (vCard 2.1 vagy 3.0 szabvány)
-        String vcard = "BEGIN:VCARD\n" +
-                       "VERSION:3.0\n" +
-                       "FN:" + name + "\n" +
-                       "TEL:" + phone + "\n" +
-                       "EMAIL:" + email + "\n" +
-                       "END:VCARD";
+        String vcard = "BEGIN:VCARD\nVERSION:3.0\nFN:" + name + "\nTEL:" + phone + "\nEMAIL:" + email + "\nEND:VCARD";
+        
+        byte[] vcardBytes = vcard.getBytes(StandardCharsets.UTF_8);
+        byte[] typeBytes = "text/vcard".getBytes(StandardCharsets.UTF_8);
+        
+        List<Byte> ndef = new ArrayList<>();
+        int payloadLen = vcardBytes.length;
 
-        byte[] vcardBytes = vcard.getBytes(Charset.forName("UTF-8"));
-        byte[] typeBytes = "text/vcard".getBytes(Charset.forName("US-ASCII"));
+        if (payloadLen <= 255) {
+            // Short Record: MB=1, ME=1, SR=1, TNF=0x02
+            ndef.add((byte) (0xD2 | 0x10)); 
+            ndef.add((byte) typeBytes.length);
+            ndef.add((byte) payloadLen);
+        } else {
+            // Normal Record: MB=1, ME=1, SR=0, TNF=0x02
+            ndef.add((byte) 0xC2);
+            ndef.add((byte) typeBytes.length);
+            // 4-byte Payload Length (big-endian)
+            ndef.add((byte) ((payloadLen >> 24) & 0xFF));
+            ndef.add((byte) ((payloadLen >> 16) & 0xFF));
+            ndef.add((byte) ((payloadLen >> 8) & 0xFF));
+            ndef.add((byte) (payloadLen & 0xFF));
+        }
 
-        // 2. NDEF Record Header
-        // MB=1, ME=1, SR=1, TNF=0x02
-        byte[] ndef = new byte[vcardBytes.length + typeBytes.length + 3];
-        ndef[0] = (byte) 0xD2; 
-        ndef[1] = (byte) typeBytes.length; // "text/vcard" hossza
-        ndef[2] = (byte) vcardBytes.length; // Payload hossza
+        // Type és Payload hozzáadása az NDEF listához
+        for (byte b : typeBytes) ndef.add(b);
+        for (byte b : vcardBytes) ndef.add(b);
 
-        // Típus másolása
-        System.arraycopy(typeBytes, 0, ndef, 3, typeBytes.length);
-        // Payload (vCard szöveg) másolása
-        System.arraycopy(vcardBytes, 0, ndef, 3 + typeBytes.length, vcardBytes.length);
+        // TLV (Tag-Length-Value) csomagolás
+        List<Byte> tlv = new ArrayList<>();
+        tlv.add((byte) 0x03); // T (Tag)
+        
+        if (ndef.size() < 0xFF) {
+            tlv.add((byte) ndef.size()); // L (Length)
+        } else {
+            tlv.add((byte) 0xFF);
+            tlv.add((byte) ((ndef.size() >> 8) & 0xFF));
+            tlv.add((byte) (ndef.size() & 0xFF));
+        }
+        
+        tlv.addAll(ndef); // V (Value)
+        tlv.add((byte) 0xFE); // Terminator Tag
 
-        // 3. TLV boríték (Tag-Length-Value)
-        byte[] tlv = new byte[ndef.length + 3];
-        tlv[0] = 0x03;               // NDEF Tag
-        tlv[1] = (byte) ndef.length; // Üzenet hossza
-        System.arraycopy(ndef, 0, tlv, 2, ndef.length);
-        tlv[tlv.length - 1] = (byte) 0xFE; // Terminator
-
-        return tlv;
+        // List<Byte> átalakítása primitív byte[] tömbbé
+        byte[] result = new byte[tlv.size()];
+        for (int i = 0; i < tlv.size(); i++) {
+            result[i] = tlv.get(i);
+        }
+        
+        return result;
     }
 
     public static String decodeNdefVCard(byte[] toByteArray) {
