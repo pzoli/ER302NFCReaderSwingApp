@@ -22,18 +22,6 @@ Connect ER302 reader to the computer USB port before run the application.
 ## General functions
 ### Send message sequence is used for sending messages:
 - beep message
-- read firmware version
-- request MiFare card
-- anticolision MiFare card
-- select MiFare card
-- auth2 to the 5th sector
-- initialize a balance at 5th sector 1 block
-- read balance
-- increment balance
-- decrement balance
-- read block
-- write block
-- Hlta
 
 ### Send hexa string
 With this feature you can send a hexadecimal string to the reader.
@@ -51,6 +39,10 @@ With this feature you can encode a command and it's params info a sendable hexad
 ## Ultralight functions
 - NDEF URL upload / download
 - NDEF Text upload / download
+- NDEF vCard upload / download
+
+## Classic functions
+- Import CSV file
 - NDEF vCard upload / download
 
 ## MicroPayment functions
