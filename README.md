@@ -48,7 +48,7 @@ With this feature you can encode a command and it's params info a sendable hexad
 - Increment and decrement balance with modification value
 - Password KeyA/KeyB change and acces bits save
 
-## Screenshot (v0.6)
+## Screenshot (v0.7)
 
 ![Screenshot1.png](docs/Screenshot1.png)
 ![Screenshot2.png](docs/Screenshot2.png)
