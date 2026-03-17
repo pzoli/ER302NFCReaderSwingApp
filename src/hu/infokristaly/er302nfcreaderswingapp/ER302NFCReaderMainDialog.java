@@ -1479,6 +1479,13 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     }//GEN-LAST:event_btnDeletePersonActionPerformed
 
     private void btnUploadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUploadActionPerformed
+        if (serialPort == null) {
+            return;
+        }
+        if (!checkPasswordFormat(txtActualKeyForClassic.getText().trim())) {
+            JOptionPane.showMessageDialog(null, "Not a valid actual key format!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
         commandsProcessor = PROCESS.WRITE_VCARD_CLASSIC_MESSAGE;
         logArea.setText("");
         String key = txtActualKeyForClassic.getText();
@@ -1559,6 +1566,13 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     }//GEN-LAST:event_btnUploadActionPerformed
 
     private void btnDownloadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDownloadActionPerformed
+        if (serialPort == null) {
+            return;
+        }
+        if (!checkPasswordFormat(txtActualKeyForClassic.getText().trim())) {
+            JOptionPane.showMessageDialog(null, "Not a valid actual key format!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
         commandsProcessor = PROCESS.READ_VCARD_CLASSIC_MESSAGE;
         logArea.setText("");
         rawData = new ByteArrayOutputStream();
