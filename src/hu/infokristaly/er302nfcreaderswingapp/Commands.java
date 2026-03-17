@@ -73,6 +73,11 @@ public class Commands {
         return result;
     }
 
+     /*
+     Request a type of card
+     data = 0x52: request all Type A card In field,
+     data = 0x26: request idle card
+     */
     public static byte[] mifareRequest() {
         byte[] data = {0x52};
         byte[] result = buildCommand(ER302Driver.CMD_MIFARE_REQUEST, data);

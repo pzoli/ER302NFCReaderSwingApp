@@ -112,11 +112,6 @@ public class ER302Driver {
     public static byte[] CMD_WORKING_STATUS = {0x08, 0x01}; // Unused according to API reference
     public static byte[] CMD_ANTENNA_POWER = {0x0C, 0x01};
 
-    /*
-     Request a type of card
-     data = 0x52: request all Type A card In field,
-     data = 0x26: request idle card
-     */
     public static byte[] CMD_MIFARE_REQUEST = {0x01, 0x02};
     public static byte[] CMD_MIFARE_ANTICOLISION = {0x02, 0x02}; // 0x04 -> <NUL> (00)     [4cd90080]-cardnumber
     public static byte[] CMD_MIFARE_SELECT = {0x03, 0x02}; // [4cd90080] -> 0008
