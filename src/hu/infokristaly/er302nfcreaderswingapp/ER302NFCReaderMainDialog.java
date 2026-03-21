@@ -2010,7 +2010,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                     log("received[" + input + "]");
                     ER302Driver.ReceivedStruct result = ER302Driver.decodeReceivedData(buffer);
                     while ((result != null) && (result.length > 0)) {
-                        switch (commandsProcessor) {
+                        switch (commandsProcessor) { // Better way is a method pointer here
                             case PROCESS.URL_MESSAGE:
                                 readUrlProcessCommands(result);
                                 break;
