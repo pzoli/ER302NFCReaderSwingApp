@@ -2032,7 +2032,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                         }
 
                     }
-                    if (commands.size() > 0) {
+                    if (!commands.isEmpty()) {
                         lastCommand = commands.poll();
                         if (lastCommand != null) {
                             log("Send serial data [" + lastCommand.descrition + "]: " + ER302Driver.byteArrayToHexString(lastCommand.getCmd()));
