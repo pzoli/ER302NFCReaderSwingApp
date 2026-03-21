@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
@@ -44,6 +45,8 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     private int ulReadIdx = 0;
     private int selectedRow = -1;
     private byte currentSector, currentBlock;
+    
+    private Consumer<ER302Driver.ReceivedStruct> messageProcessor;
 
     ByteArrayOutputStream rawData = new ByteArrayOutputStream();
 
@@ -151,10 +154,8 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
         }
     }
 
-    private enum PROCESS {
-        SINGLE_MESSAGE, URL_MESSAGE, TEXT_MESSAGE, VCARD_MESSAGE,
-        SET_BALANCE_MESSAGE, GET_BALANCE_MESSAGE, INC_BALANCE_MESSAGE, DEC_BALANCE_MESSAGE,
-        SETKEY_MESSAGE, GET_ACCESSBITS_MESSAGE, WRITE_VCARD_CLASSIC_MESSAGE, READ_VCARD_CLASSIC_MESSAGE
+    private enum SUBPROCESS {
+        SET_BALANCE_MESSAGE, GET_BALANCE_MESSAGE, INC_BALANCE_MESSAGE, DEC_BALANCE_MESSAGE 
     };
 
     private ER302Driver.CommandStruct lastCommand;
@@ -167,7 +168,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     private byte[] cardSerialNo;
     private byte[] keyBlock;
 
-    private PROCESS commandsProcessor = PROCESS.SINGLE_MESSAGE;
+    private SUBPROCESS subprocessor = null;
 
     private final Deque<ER302Driver.CommandStruct> commands = new LinkedList<>();
 
@@ -1079,17 +1080,17 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                     byte sector = Byte.parseByte(txtSector.getText());
                     byte block = Byte.parseByte(cbxBlock.getSelectedItem().toString());
                     int modification = Integer.parseInt(txtModification.getText());
-                    switch (commandsProcessor) {
-                        case PROCESS.SET_BALANCE_MESSAGE -> {
+                    switch (subprocessor) {
+                        case SUBPROCESS.SET_BALANCE_MESSAGE -> {
                             addCommand(new ER302Driver.CommandStruct(6, "Init balance (" + txtSector.getText() + "/" + cbxBlock.getSelectedItem().toString() + ")", Commands.initBalance(sector, block, balance)));
                         }
-                        case PROCESS.GET_BALANCE_MESSAGE -> {
+                        case SUBPROCESS.GET_BALANCE_MESSAGE -> {
                             addCommand(new ER302Driver.CommandStruct(8, "Read balance (" + txtSector.getText() + "/" + cbxBlock.getSelectedItem().toString() + ")", Commands.readBalance(sector, block)));
                         }
-                        case PROCESS.INC_BALANCE_MESSAGE -> {
+                        case SUBPROCESS.INC_BALANCE_MESSAGE -> {
                             addCommand(new ER302Driver.CommandStruct(10, "Inc balance (" + txtSector.getText() + "/" + cbxBlock.getSelectedItem().toString() + ")", Commands.incBalance(sector, block, modification)));
                         }
-                        case PROCESS.DEC_BALANCE_MESSAGE -> {
+                        case SUBPROCESS.DEC_BALANCE_MESSAGE -> {
                             addCommand(new ER302Driver.CommandStruct(12, "Dec balance (" + txtSector.getText() + "/" + cbxBlock.getSelectedItem().toString() + ")", Commands.decBalance(sector, block, modification)));
                         }
                     }
@@ -1174,7 +1175,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     }//GEN-LAST:event_btnUploadVCardActionPerformed
 
     private void btnDownloadTextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDownloadTextActionPerformed
-        commandsProcessor = PROCESS.TEXT_MESSAGE;
+        messageProcessor = this::readTextProcessCommands;
         ulReadPageIdx = 4;
         rawData = new ByteArrayOutputStream();
         if (serialPort != null) {
@@ -1197,7 +1198,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     }//GEN-LAST:event_btnUploadTextActionPerformed
 
     private void btnDownloadURLActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDownloadURLActionPerformed
-        commandsProcessor = PROCESS.URL_MESSAGE;
+        messageProcessor = this::readUrlProcessCommands;
         ulReadPageIdx = 4;
         rawData = new ByteArrayOutputStream();
         if (serialPort != null) {
@@ -1224,7 +1225,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     }//GEN-LAST:event_btnClearActionPerformed
 
     private void btnBeepActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBeepActionPerformed
-        commandsProcessor = PROCESS.SINGLE_MESSAGE;
+        messageProcessor = null;
         byte[] beepMsg = Commands.beep((byte) 100);
         log("Beep message: " + ER302Driver.byteArrayToHexString(beepMsg));
         try {
@@ -1253,7 +1254,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     }//GEN-LAST:event_btnDecodeActionPerformed
 
     private void btnSendSingleMessageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSendSingleMessageActionPerformed
-        commandsProcessor = PROCESS.SINGLE_MESSAGE;
+        messageProcessor = null;
         if (serialPort != null) {
             try {
                 logArea.setText("");
@@ -1271,7 +1272,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     }//GEN-LAST:event_btnSendSingleMessageActionPerformed
 
     private void btnVCardDownloadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVCardDownloadActionPerformed
-        commandsProcessor = PROCESS.VCARD_MESSAGE;
+        messageProcessor = this::readVCardProcessCommands;
         ulReadPageIdx = 4;
         rawData = new ByteArrayOutputStream();
         if (serialPort != null) {
@@ -1286,7 +1287,8 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     }//GEN-LAST:event_btnVCardDownloadActionPerformed
 
     private void btnBalanceSetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBalanceSetActionPerformed
-        commandsProcessor = PROCESS.SET_BALANCE_MESSAGE;
+        subprocessor = SUBPROCESS.SET_BALANCE_MESSAGE;
+        messageProcessor = this::processBalanceCommads;
         if (serialPort != null) {
             logArea.setText("");
             if (!checkPasswordFormat(txtSectorPassword.getText().trim())) {
@@ -1311,7 +1313,8 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     }//GEN-LAST:event_btnBalanceSetActionPerformed
 
     private void btnBalanceGetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBalanceGetActionPerformed
-        commandsProcessor = PROCESS.GET_BALANCE_MESSAGE;
+        subprocessor = SUBPROCESS.GET_BALANCE_MESSAGE;
+        messageProcessor = this::processBalanceCommads;
         if (serialPort != null) {
             logArea.setText("");
             if (!checkPasswordFormat(txtSectorPassword.getText().trim())) {
@@ -1336,7 +1339,8 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     }//GEN-LAST:event_btnBalanceGetActionPerformed
 
     private void btnIncActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnIncActionPerformed
-        commandsProcessor = PROCESS.INC_BALANCE_MESSAGE;
+        subprocessor = SUBPROCESS.INC_BALANCE_MESSAGE;
+        messageProcessor = this::processBalanceCommads;
         if (serialPort != null) {
             logArea.setText("");
             if (!checkPasswordFormat(txtSectorPassword.getText().trim())) {
@@ -1361,7 +1365,8 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     }//GEN-LAST:event_btnIncActionPerformed
 
     private void btnDecActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDecActionPerformed
-        commandsProcessor = PROCESS.DEC_BALANCE_MESSAGE;
+        subprocessor = SUBPROCESS.DEC_BALANCE_MESSAGE;
+        messageProcessor = this::processBalanceCommads;
         if (serialPort != null) {
             logArea.setText("");
             if (!checkPasswordFormat(txtSectorPassword.getText().trim())) {
@@ -1386,7 +1391,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     }//GEN-LAST:event_btnDecActionPerformed
 
     private void btnSaveSectorKeyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveSectorKeyActionPerformed
-        commandsProcessor = PROCESS.SETKEY_MESSAGE;
+        messageProcessor = this::processPasswordKeyChange;
         state = 0;
         if (serialPort != null) {
             logArea.setText("");
@@ -1412,7 +1417,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     }//GEN-LAST:event_btnSaveSectorKeyActionPerformed
 
     private void btnGetAccessBitsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGetAccessBitsActionPerformed
-        commandsProcessor = PROCESS.GET_ACCESSBITS_MESSAGE;
+        messageProcessor = this::processGetAccessBits;
         if (serialPort != null) {
             logArea.setText("");
             if (!checkPasswordFormat(txtOriginSectorPassword.getText().trim())) {
@@ -1486,7 +1491,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
             JOptionPane.showMessageDialog(null, "Not a valid actual key format!", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        commandsProcessor = PROCESS.WRITE_VCARD_CLASSIC_MESSAGE;
+        messageProcessor = this::processWriteVCardClassicMessage;
         logArea.setText("");
         String key = txtActualKeyForClassic.getText();
         boolean isKeyA = rbtForClassicKeyA.isSelected();
@@ -1573,7 +1578,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
             JOptionPane.showMessageDialog(null, "Not a valid actual key format!", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        commandsProcessor = PROCESS.READ_VCARD_CLASSIC_MESSAGE;
+        messageProcessor = this::processReadVCardClassicMessage;
         logArea.setText("");
         rawData = new ByteArrayOutputStream();
         currentSector = 1;
@@ -1595,7 +1600,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     }//GEN-LAST:event_btnDownloadActionPerformed
 
     public void writeVCardToTag(String vCardName, String vCardPhone, String vCardEmail) throws InterruptedException, SerialPortException {
-        commandsProcessor = PROCESS.SINGLE_MESSAGE;
+        messageProcessor = null;
         sendCommonULCommands();
         Thread.sleep(Duration.ofMillis(100));
         byte[] dataToWrite = Commands.createNdefVCardMessage(vCardName, vCardPhone, vCardEmail);
@@ -1615,7 +1620,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     }
 
     public void writeUrlToTag(String url) throws SerialPortException, InterruptedException, IllegalArgumentException {
-        commandsProcessor = PROCESS.SINGLE_MESSAGE;
+        messageProcessor = null;
         sendCommonULCommands();
         Thread.sleep(Duration.ofMillis(100));
         byte[] dataToWrite = Commands.createNdefUrlMessage(url);
@@ -1635,7 +1640,7 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
     }
 
     public void writeTextToTag(String text) throws SerialPortException, InterruptedException, IllegalArgumentException {
-        commandsProcessor = PROCESS.SINGLE_MESSAGE;
+        messageProcessor = null;
         sendCommonULCommands();
         Thread.sleep(Duration.ofMillis(100));
         byte[] dataToWrite = Commands.createNdefTextMessage(text);
@@ -2006,39 +2011,12 @@ public class ER302NFCReaderMainDialog extends javax.swing.JDialog implements jss
                         buffer = Arrays.copyOfRange(buffer, 1, buffer.length);
                     }
 
-                    String input = ER302Driver.byteArrayToHexString(buffer); //"distance:50 mm" 
+                    String input = ER302Driver.byteArrayToHexString(buffer);
                     log("received[" + input + "]");
                     ER302Driver.ReceivedStruct result = ER302Driver.decodeReceivedData(buffer);
                     while ((result != null) && (result.length > 0)) {
-                        switch (commandsProcessor) { // Better way is a method pointer here
-                            case PROCESS.URL_MESSAGE:
-                                readUrlProcessCommands(result);
-                                break;
-                            case PROCESS.TEXT_MESSAGE:
-                                readTextProcessCommands(result);
-                                break;
-                            case PROCESS.VCARD_MESSAGE:
-                                readVCardProcessCommands(result);
-                                break;
-                            case PROCESS.SET_BALANCE_MESSAGE:
-                            case PROCESS.GET_BALANCE_MESSAGE:
-                            case PROCESS.INC_BALANCE_MESSAGE:
-                            case PROCESS.DEC_BALANCE_MESSAGE:
-                                processBalanceCommads(result);
-                                break;
-                            case PROCESS.SETKEY_MESSAGE:
-                                processPasswordKeyChange(result);
-                                break;
-                            case PROCESS.GET_ACCESSBITS_MESSAGE:
-                                processGetAccessBits(result);
-                                break;
-                            case PROCESS.WRITE_VCARD_CLASSIC_MESSAGE:
-                                processWriteVCardClassicMessage(result);
-                                break;
-                            case PROCESS.READ_VCARD_CLASSIC_MESSAGE:
-                                processReadVCardClassicMessage(result);
-                                break;
-                            default:
+                        if (messageProcessor != null) {
+                            messageProcessor.accept(result);
                         }
                         if (result.length < buffer.length) {
                             buffer = Arrays.copyOfRange(buffer, result.length, buffer.length);
